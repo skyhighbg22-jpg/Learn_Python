@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { X, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, CheckCircle, XCircle, Code, Trophy, BookOpen, Sparkles } from 'lucide-react';
 import { Lesson, supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { CodeEditor } from './CodeEditor';
+import { DragDropLesson } from './DragDropLesson';
+import { PuzzleGameLesson } from './PuzzleGameLesson';
+import { StoryLesson } from './StoryLesson';
 
 type LessonModalProps = {
   lesson: Lesson;
@@ -17,9 +20,14 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [startTime] = useState(Date.now());
 
   const currentContent = lesson.content[currentStep];
   const isLastStep = currentStep === lesson.content.length - 1;
+
+  // Get lesson type from database or content
+  const lessonType = lesson.lesson_type || 'multiple-choice';
 
   const handleCheckAnswer = () => {
     if (currentContent.type === 'multiple-choice' && currentContent.correctAnswer) {
