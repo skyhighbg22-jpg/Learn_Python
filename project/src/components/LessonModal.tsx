@@ -34,7 +34,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
       const isCorrect = selectedAnswer === currentContent.correctAnswer;
       setFeedback({
         correct: isCorrect,
-        message: isCorrect ? 'Great job!' : 'Not quite. Try again!',
+        message: isCorrect ? 'Excellent work! 🎉' : 'Not quite right. Try again!',
       });
 
       if (isCorrect) {
@@ -46,7 +46,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
       const isCorrect = userCode.trim().length > 0;
       setFeedback({
         correct: isCorrect,
-        message: isCorrect ? 'Code looks good!' : 'Please write some code',
+        message: isCorrect ? 'Great coding! 💻' : 'Please write some code',
       });
 
       if (isCorrect) {
@@ -72,6 +72,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
     if (!profile) return;
 
     setIsCompleting(true);
+    setShowCelebration(true);
 
     try {
       const { data: existingProgress } = await supabase
@@ -109,44 +110,225 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         .eq('id', profile.id);
 
       await refreshProfile();
-      onComplete();
-      onClose();
+
+      setTimeout(() => {
+        onComplete();
+        onClose();
+      }, 2000);
     } catch (error) {
       console.error('Error completing lesson:', error);
     } finally {
-      setIsCompleting(false);
+      setTimeout(() => {
+        setIsCompleting(false);
+        setShowCelebration(false);
+      }, 2000);
     }
   };
 
+  // Handle lesson type-specific completion
+  const handleLessonComplete = (success: boolean, additionalData: any = {}) => {
+    if (success) {
+      setShowCelebration(true);
+      completeLesson();
+    }
+  };
+
+  // Get lesson type icon and color
+  const getLessonTypeInfo = (type: string) => {
+    switch (type) {
+      case 'drag-drop':
+        return { icon: Code, color: 'text-purple-400', label: 'Drag & Drop' };
+      case 'puzzle':
+        return { icon: Trophy, color: 'text-warning-400', label: 'Puzzle Game' };
+      case 'story':
+        return { icon: BookOpen, color: 'text-info-400', label: 'Story Lesson' };
+      case 'code':
+        return { icon: Code, color: 'text-primary-400', label: 'Coding' };
+      default:
+        return { icon: Sparkles, color: 'text-success-400', label: 'Lesson' };
+    }
+  };
+
+  const lessonTypeInfo = getLessonTypeInfo(lessonType);
+
+  // Render different lesson types
+  if (lessonType === 'drag-drop' && lesson.drag_drop_data) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="glass rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto animate-in animate-scale-in">
+          <div className="sticky top-0 glass border-b border-slate-700 p-6 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 bg-slate-700 rounded-lg ${lessonTypeInfo.color}`}>
+                <lessonTypeInfo.icon size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{lesson.title}</h2>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`${lessonTypeInfo.color} font-medium`}>{lessonTypeInfo.label}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-400">{lesson.xp_reward} XP</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors btn-enhanced p-2 rounded-lg hover:bg-slate-700"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            <DragDropLesson
+              title={lesson.title}
+              description={lesson.description}
+              instructions={lesson.drag_drop_data.instructions || lesson.description}
+              initialCode={lesson.drag_drop_data.code_blocks || []}
+              correctOrder={lesson.drag_drop_data.correct_order || []}
+              hints={lesson.drag_drop_data.hints || []}
+              onLessonComplete={handleLessonComplete}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (lessonType === 'puzzle' && lesson.game_data) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="glass rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto animate-in animate-scale-in">
+          <div className="sticky top-0 glass border-b border-slate-700 p-6 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 bg-slate-700 rounded-lg ${lessonTypeInfo.color}`}>
+                <lessonTypeInfo.icon size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{lesson.title}</h2>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`${lessonTypeInfo.color} font-medium`}>{lessonTypeInfo.label}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-400">{lesson.xp_reward} XP</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors btn-enhanced p-2 rounded-lg hover:bg-slate-700"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            <PuzzleGameLesson
+              title={lesson.title}
+              description={lesson.description}
+              questions={lesson.game_data.questions || []}
+              timeBonus={lesson.game_data.time_bonus || 50}
+              streakMultiplier={lesson.game_data.streak_multiplier || 10}
+              onLessonComplete={handleLessonComplete}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (lessonType === 'story' && lesson.story_data) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="glass rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto animate-in animate-scale-in">
+          <div className="sticky top-0 glass border-b border-slate-700 p-6 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 bg-slate-700 rounded-lg ${lessonTypeInfo.color}`}>
+                <lessonTypeInfo.icon size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{lesson.title}</h2>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`${lessonTypeInfo.color} font-medium`}>{lessonTypeInfo.label}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-400">{lesson.xp_reward} XP</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors btn-enhanced p-2 rounded-lg hover:bg-slate-700"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            <StoryLesson
+              title={lesson.title}
+              description={lesson.description}
+              setting={lesson.story_data.setting || 'Python World'}
+              protagonist={lesson.story_data.protagonist || { name: 'Student', avatar: '👨‍💻', role: 'Python Learner', personality: 'Eager to learn' }}
+              chapters={lesson.story_data.chapters || []}
+              onLessonComplete={handleLessonComplete}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Traditional lesson modal (multiple-choice and code)
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between z-10">
+      <div className="glass rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-in animate-scale-in">
+        {/* Header with enhanced styling */}
+        <div className="sticky top-0 glass border-b border-slate-700 p-6 flex items-center justify-between z-10">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-white mb-1">{lesson.title}</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-2 bg-slate-700 rounded-lg ${lessonTypeInfo.color}`}>
+                <lessonTypeInfo.icon size={20} />
+              </div>
+              <h2 className="text-2xl font-bold text-gradient">{lesson.title}</h2>
+            </div>
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-slate-400">
-                Step {currentStep + 1} of {lesson.content.length}
-              </span>
-              <div className="flex-1 bg-slate-700 rounded-full h-2 max-w-xs">
+              <span className={`${lessonTypeInfo.color} font-medium`}>{lessonTypeInfo.label}</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-400">Step {currentStep + 1} of {lesson.content.length}</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-warning-400 font-medium">{lesson.xp_reward} XP</span>
+            </div>
+            <div className="mt-3">
+              <div className="progress-bar h-3">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all"
+                  className="progress-fill transition-all duration-500"
                   style={{ width: `${((currentStep + 1) / lesson.content.length) * 100}%` }}
-                ></div>
+                >
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg animate-pulse"></div>
+                </div>
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-slate-400 hover:text-white transition-colors btn-enhanced p-2 rounded-lg hover:bg-slate-700 ml-4"
           >
             <X size={24} />
           </button>
         </div>
 
+        {/* Celebration overlay */}
+        {showCelebration && (
+          <div className="absolute inset-0 flex items-center justify-center z-50 bg-slate-800 bg-opacity-90 rounded-2xl">
+            <div className="text-center animate-bounce-gentle">
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-3xl font-bold text-gradient mb-2">Lesson Complete!</h3>
+              <p className="text-slate-300 text-lg">You earned {lesson.xp_reward} XP</p>
+            </div>
+          </div>
+        )}
+
         <div className="p-6">
           <div className="mb-6">
-            <p className="text-white text-lg leading-relaxed">{currentContent.question}</p>
+            <p className="text-white text-lg leading-relaxed animate-in animate-slide-in">{currentContent.question}</p>
           </div>
 
           {currentContent.type === 'multiple-choice' && currentContent.options && (
@@ -155,13 +337,14 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
                 <button
                   key={index}
                   onClick={() => setSelectedAnswer(option)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  className={`w-full text-left p-4 rounded-lg border-2 transition-all btn-enhanced ${
                     selectedAnswer === option
-                      ? 'border-blue-500 bg-blue-900/20'
-                      : 'border-slate-700 bg-slate-700 hover:bg-slate-600'
-                  }`}
+                      ? 'border-primary-500 bg-primary-500 bg-opacity-20 text-primary-400'
+                      : 'border-slate-600 bg-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-600'
+                  } animate-in animate-delay-${index * 100}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <span className="text-white">{option}</span>
+                  <span className="font-medium">Option {String.fromCharCode(65 + index)}:</span> {option}
                 </button>
               ))}
             </div>
@@ -179,20 +362,20 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
 
           {feedback && (
             <div
-              className={`flex items-center gap-3 p-4 rounded-lg mb-6 ${
+              className={`flex items-center gap-3 p-4 rounded-lg mb-6 animate-in animate-scale-in ${
                 feedback.correct
-                  ? 'bg-green-900/20 border border-green-700'
-                  : 'bg-red-900/20 border border-red-700'
+                  ? 'bg-success-500 bg-opacity-10 border border-success-500 border-opacity-30'
+                  : 'bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30'
               }`}
             >
               {feedback.correct ? (
-                <CheckCircle className="text-green-500" size={24} />
+                <CheckCircle className="text-success-400 animate-pulse" size={24} />
               ) : (
-                <XCircle className="text-red-500" size={24} />
+                <XCircle className="text-red-400 animate-shake" size={24} />
               )}
               <span
                 className={`font-semibold ${
-                  feedback.correct ? 'text-green-400' : 'text-red-400'
+                  feedback.correct ? 'text-success-400' : 'text-red-400'
                 }`}
               >
                 {feedback.message}
@@ -208,7 +391,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
                   (currentContent.type === 'multiple-choice' && !selectedAnswer) ||
                   (currentContent.type === 'code' && !userCode.trim())
                 }
-                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Check Answer
               </button>
@@ -218,9 +401,9 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
               <button
                 onClick={handleNext}
                 disabled={isCompleting}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 btn-success disabled:opacity-50"
               >
-                {isCompleting ? 'Completing...' : isLastStep ? 'Complete Lesson' : 'Next'}
+                {isCompleting ? 'Completing...' : isLastStep ? 'Complete Lesson' : 'Next Step'}
               </button>
             )}
           </div>
