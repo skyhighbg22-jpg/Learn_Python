@@ -67,18 +67,38 @@ export const LearnView = () => {
     return progress[lessonId]?.status || 'locked';
   };
 
+  // Get lesson type information
+  const getLessonTypeInfo = (lesson: Lesson) => {
+    const type = lesson.lesson_type || 'multiple-choice';
+    switch (type) {
+      case 'drag-drop':
+        return { icon: Code, color: 'text-purple-400', bgColor: 'bg-purple-500', label: 'Drag & Drop' };
+      case 'puzzle':
+        return { icon: Trophy, color: 'text-warning-400', bgColor: 'bg-warning-500', label: 'Puzzle Game' };
+      case 'story':
+        return { icon: BookOpen, color: 'text-info-400', bgColor: 'bg-info-500', label: 'Story' };
+      case 'code':
+        return { icon: Code, color: 'text-primary-400', bgColor: 'bg-primary-500', label: 'Coding' };
+      default:
+        return { icon: Sparkles, color: 'text-success-400', bgColor: 'bg-success-500', label: 'Lesson' };
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-400">Loading lessons...</div>
+        <div className="flex flex-col items-center gap-4 animate-in animate-fade-in">
+          <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-slate-400">Loading amazing lessons...</div>
+        </div>
       </div>
     );
   }
 
   if (sections.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <Star className="text-slate-600" size={64} />
+      <div className="flex flex-col items-center justify-center h-full gap-4 animate-in animate-fade-in">
+        <Star className="text-slate-600 animate-pulse" size={64} />
         <p className="text-slate-400 text-lg">No lessons available yet</p>
         <p className="text-slate-500 text-sm">Check back soon for exciting Python content!</p>
       </div>
