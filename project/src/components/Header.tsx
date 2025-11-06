@@ -1,38 +1,173 @@
-import { Flame, Heart, Zap } from 'lucide-react';
+import { Flame, Heart, Zap, Trophy, Crown, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useState } from 'react';
 
 export const Header = () => {
   const { profile } = useAuth();
+  const [animatedStats, setAnimatedStats] = useState({
+    streak: 0,
+    hearts: 5,
+    xp: 0
+  });
+
+  // Animate stats when they change
+  useEffect(() => {
+    if (profile) {
+      const timer = setTimeout(() => {
+        setAnimatedStats({
+          streak: profile.current_streak || 0,
+          hearts: profile.hearts || 5,
+          xp: profile.total_xp || 0
+        });
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [profile]);
+
+  const getLeagueIcon = (league: string) => {
+    switch (league?.toLowerCase()) {
+      case 'diamond':
+        return <Crown className="text-cyan-400" size={16} />;
+      case 'platinum':
+        return <Star className="text-purple-400" size={16} />;
+      case 'gold':
+        return <Trophy className="text-yellow-400" size={16} />;
+      case 'silver':
+        return <Trophy className="text-slate-400" size={16} />;
+      default:
+        return <Trophy className="text-orange-600" size={16} />;
+    }
+  };
+
+  const getLeagueColor = (league: string) => {
+    switch (league?.toLowerCase()) {
+      case 'diamond':
+        return 'text-cyan-400';
+      case 'platinum':
+        return 'text-purple-400';
+      case 'gold':
+        return 'text-yellow-400';
+      case 'silver':
+        return 'text-slate-400';
+      default:
+        return 'text-orange-600';
+    }
+  };
 
   return (
-    <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+    <div className="glass border-b border-slate-700 px-6 py-4 animate-in animate-fade-in">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-lg">
-            <Flame className="text-orange-500" size={20} />
-            <span className="text-white font-bold">{profile?.current_streak || 0}</span>
-            <span className="text-slate-400 text-sm">day streak</span>
+        {/* Enhanced Stats Section */}
+        <div className="flex items-center gap-4">
+          {/* Enhanced Streak Card */}
+          <div className="stat-card group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
+            <div className="relative flex items-center gap-3">
+              <div className="relative">
+                <Flame className="text-orange-500 animate-pulse" size={24} />
+                {animatedStats.streak > 0 && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-ping"></div>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span
+                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
+                  key={`streak-${animatedStats.streak}`}
+                >
+                  {animatedStats.streak}
+                </span>
+                <span className="text-slate-400 text-xs font-medium">day streak</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-lg">
-            <Heart className="text-red-500" size={20} />
-            <span className="text-white font-bold">{profile?.hearts || 5}</span>
+          {/* Enhanced Hearts Card */}
+          <div className="stat-card group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
+            <div className="relative flex items-center gap-3">
+              <div className="relative">
+                <Heart className="text-red-500 transition-transform duration-250 hover:scale-110" size={24} />
+                <div className="absolute inset-0 bg-red-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+              </div>
+              <div className="flex flex-col">
+                <span
+                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
+                  key={`hearts-${animatedStats.hearts}`}
+                >
+                  {animatedStats.hearts}
+                </span>
+                <span className="text-slate-400 text-xs font-medium">hearts</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-lg">
-            <Zap className="text-yellow-500" size={20} />
-            <span className="text-white font-bold">{profile?.total_xp || 0}</span>
-            <span className="text-slate-400 text-sm">XP</span>
+          {/* Enhanced XP Card */}
+          <div className="stat-card group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-warning-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
+            <div className="relative flex items-center gap-3">
+              <div className="relative">
+                <Zap className="text-warning-400 animate-pulse" size={24} />
+                <div className="absolute -inset-2 bg-yellow-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+              </div>
+              <div className="flex flex-col">
+                <span
+                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
+                  key={`xp-${animatedStats.xp}`}
+                >
+                  {animatedStats.xp.toLocaleString()}
+                </span>
+                <span className="text-slate-400 text-xs font-medium">total XP</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Enhanced Profile Section */}
+        <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-white font-semibold">{profile?.display_name}</p>
-            <p className="text-slate-400 text-sm capitalize">{profile?.league || 'Bronze'} League</p>
+            <p className="text-white font-semibold text-lg">{profile?.display_name}</p>
+            <div className="flex items-center gap-2 justify-end">
+              {getLeagueIcon(profile?.league || 'Bronze')}
+              <span className={`text-sm font-medium capitalize ${getLeagueColor(profile?.league || 'Bronze')}`}>
+                {profile?.league || 'Bronze'} League
+              </span>
+            </div>
           </div>
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-            {profile?.display_name?.charAt(0).toUpperCase()}
+
+          {/* Enhanced Avatar */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-info-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-250 blur-md"></div>
+            <div className="relative w-14 h-14 bg-gradient-to-br from-primary-500 to-info-500 rounded-full flex items-center justify-center text-white font-bold text-xl transition-transform duration-250 hover:scale-105 cursor-pointer shadow-lg">
+              {profile?.display_name?.charAt(0).toUpperCase()}
+              {/* Avatar ring animation */}
+              <div className="absolute inset-0 rounded-full border-2 border-white border-opacity-20 animate-pulse"></div>
+            </div>
+            {/* Level badge */}
+            <div className="absolute -bottom-1 -right-1 bg-warning-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-slate-800 animate-bounce-gentle">
+              {profile?.current_level || 1}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* XP Progress Bar */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-slate-400 font-medium">Level Progress</span>
+          <span className="text-xs text-primary-400 font-medium">
+            {((profile?.total_xp || 0) % 100)}/100 XP to Level {(profile?.current_level || 1) + 1}
+          </span>
+        </div>
+        <div className="progress-bar h-3">
+          <div
+            className="progress-fill relative"
+            style={{ width: `${((profile?.total_xp || 0) % 100)}%` }}
+          >
+            {/* Animated progress indicator */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg animate-pulse"></div>
+            {/* Progress glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-warning-400 opacity-30 rounded-full blur-sm"></div>
           </div>
         </div>
       </div>
