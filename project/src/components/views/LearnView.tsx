@@ -107,86 +107,224 @@ export const LearnView = () => {
 
   return (
     <>
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Learning Path</h2>
-          <p className="text-slate-400">Complete lessons to earn XP and level up!</p>
+      <div className="max-w-6xl mx-auto p-8">
+        {/* Enhanced Header */}
+        <div className="mb-8 text-center animate-in animate-slide-in">
+          <h1 className="text-4xl font-bold text-gradient mb-3 flex items-center justify-center gap-3">
+            <BookOpen className="text-primary-400" size={40} />
+            Learning Path
+          </h1>
+          <p className="text-slate-300 text-lg">Complete lessons to earn XP and unlock new content!</p>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-2xl mx-auto">
+            <div className="stat-card text-center">
+              <div className="text-2xl font-bold text-primary-400">{sections.length}</div>
+              <div className="text-xs text-slate-400">Sections</div>
+            </div>
+            <div className="stat-card text-center">
+              <div className="text-2xl font-bold text-success-400">
+                {Object.values(progress).filter(p => p.status === 'completed').length}
+              </div>
+              <div className="text-xs text-slate-400">Completed</div>
+            </div>
+            <div className="stat-card text-center">
+              <div className="text-2xl font-bold text-warning-400">{profile?.total_xp || 0}</div>
+              <div className="text-xs text-slate-400">Total XP</div>
+            </div>
+            <div className="stat-card text-center">
+              <div className="text-2xl font-bold text-info-400">{profile?.current_level || 1}</div>
+              <div className="text-xs text-slate-400">Level</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Lesson Type Legend */}
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-4 text-sm animate-in animate-delay-100">
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+            <Sparkles className="text-success-400" size={16} />
+            <span className="text-slate-300">Traditional</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+            <Code className="text-primary-400" size={16} />
+            <span className="text-slate-300">Coding</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+            <Code className="text-purple-400" size={16} />
+            <span className="text-slate-300">Drag & Drop</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+            <Trophy className="text-warning-400" size={16} />
+            <span className="text-slate-300">Puzzle Game</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+            <BookOpen className="text-info-400" size={16} />
+            <span className="text-slate-300">Story</span>
+          </div>
         </div>
 
         <div className="space-y-8">
-          {sections.map((section) => {
+          {sections.map((section, sectionIndex) => {
             const sectionLessons = lessons[section.id] || [];
             const isUnlocked = profile && profile.total_xp >= section.unlock_requirement_xp;
+            const completedInSection = sectionLessons.filter(lesson => getLessonStatus(lesson.id) === 'completed').length;
 
             return (
               <div
                 key={section.id}
-                className={`bg-slate-800 rounded-xl p-6 border ${
-                  isUnlocked ? 'border-slate-700' : 'border-slate-800 opacity-60'
-                }`}
+                className={`card-enhanced relative overflow-hidden animate-in animate-delay-${sectionIndex * 100}`}
+                style={{ animationDelay: `${sectionIndex * 100}ms` }}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-1">{section.title}</h3>
-                    <p className="text-slate-400 text-sm">{section.description}</p>
-                  </div>
-                  {!isUnlocked && (
-                    <div className="flex items-center gap-2 text-slate-500">
-                      <Lock size={18} />
-                      <span className="text-sm">{section.unlock_requirement_xp} XP required</span>
+                {/* Background gradient for unlocked sections */}
+                {isUnlocked && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-info-500 opacity-5"></div>
+                )}
+
+                <div className="relative">
+                  {/* Section Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-white">{section.title}</h3>
+                        {isUnlocked && (
+                          <span className="badge-primary text-xs">Available</span>
+                        )}
+                      </div>
+                      <p className="text-slate-300 text-lg mb-3">{section.description}</p>
+
+                      {/* Section Progress */}
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="text-success-400" size={16} />
+                          <span className="text-slate-300">
+                            {completedInSection} of {sectionLessons.length} completed
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="text-warning-400" size={16} />
+                          <span className="text-slate-300">
+                            {sectionLessons.reduce((total, lesson) => total + (lesson.estimated_minutes || 10), 0)} min
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {sectionLessons.length > 0 && (
+                        <div className="mt-3">
+                          <div className="progress-bar h-2">
+                            <div
+                              className="progress-fill"
+                              style={{ width: `${(completedInSection / sectionLessons.length) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="space-y-3">
-                  {sectionLessons.map((lesson, index) => {
-                    const lessonUnlocked = isLessonUnlocked(lesson, section);
-                    const status = getLessonStatus(lesson.id);
-                    const isCompleted = status === 'completed';
+                    {!isUnlocked && (
+                      <div className="flex flex-col items-center text-center p-4 bg-slate-900 bg-opacity-50 rounded-lg border border-slate-700">
+                        <Lock className="text-slate-500 mb-2" size={24} />
+                        <span className="text-slate-400 text-sm font-medium">
+                          {section.unlock_requirement_xp} XP required
+                        </span>
+                        <span className="text-slate-500 text-xs mt-1">
+                          {section.unlock_requirement_xp - (profile?.total_xp || 0)} XP to go
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-                    return (
-                      <button
-                        key={lesson.id}
-                        onClick={() => lessonUnlocked && setSelectedLesson(lesson)}
-                        disabled={!lessonUnlocked}
-                        className={`w-full flex items-center justify-between p-4 rounded-lg transition-all ${
-                          lessonUnlocked
-                            ? isCompleted
-                              ? 'bg-green-900/20 border border-green-700 hover:bg-green-900/30'
-                              : 'bg-slate-700 hover:bg-slate-600'
-                            : 'bg-slate-900/50 cursor-not-allowed'
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              isCompleted
-                                ? 'bg-green-500'
-                                : lessonUnlocked
-                                ? 'bg-blue-500'
-                                : 'bg-slate-700'
-                            }`}
-                          >
-                            {isCompleted ? (
-                              <CheckCircle size={20} className="text-white" />
-                            ) : lessonUnlocked ? (
-                              <Play size={20} className="text-white" />
-                            ) : (
-                              <Lock size={20} className="text-slate-500" />
+                  {/* Lessons Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {sectionLessons.map((lesson, lessonIndex) => {
+                      const lessonUnlocked = isLessonUnlocked(lesson, section);
+                      const status = getLessonStatus(lesson.id);
+                      const isCompleted = status === 'completed';
+                      const lessonTypeInfo = getLessonTypeInfo(lesson);
+                      const Icon = lessonTypeInfo.icon;
+
+                      return (
+                        <button
+                          key={lesson.id}
+                          onClick={() => lessonUnlocked && setSelectedLesson(lesson)}
+                          disabled={!lessonUnlocked}
+                          className={`card-interactive p-5 text-left group ${
+                            !lessonUnlocked ? 'opacity-60 cursor-not-allowed' : ''
+                          } animate-in animate-delay-${sectionIndex * 100 + lessonIndex * 50}`}
+                          style={{ animationDelay: `${sectionIndex * 100 + lessonIndex * 50}ms` }}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            {/* Lesson Status Icon */}
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-250 group-hover:scale-110 ${
+                                  isCompleted
+                                    ? lessonTypeInfo.bgColor
+                                    : lessonUnlocked
+                                    ? 'bg-slate-700 group-hover:bg-slate-600'
+                                    : 'bg-slate-800'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle size={24} className="text-white animate-pulse" />
+                                ) : lessonUnlocked ? (
+                                  <Icon size={24} className={`${lessonTypeInfo.color} group-hover:scale-110 transition-transform duration-250`} />
+                                ) : (
+                                  <Lock size={24} className="text-slate-500" />
+                                )}
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="text-white font-semibold text-lg group-hover:text-primary-400 transition-colors duration-250">
+                                    {lesson.title}
+                                  </h4>
+                                  {isCompleted && (
+                                    <span className="badge-success text-xs animate-pulse">Completed</span>
+                                  )}
+                                </div>
+                                <p className="text-slate-400 text-sm leading-relaxed">{lesson.description}</p>
+                              </div>
+                            </div>
+
+                            {/* Lesson Type Badge */}
+                            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${lessonTypeInfo.bgColor} ${lessonTypeInfo.color} bg-opacity-20 border ${lessonTypeInfo.color} border-opacity-30`}>
+                              <Icon size={12} />
+                              {lessonTypeInfo.label}
+                            </div>
+                          </div>
+
+                          {/* Lesson Details */}
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700">
+                            <div className="flex items-center gap-3 text-sm">
+                              <span className={`font-semibold ${lessonTypeInfo.color}`}>+{lesson.xp_reward} XP</span>
+                              <div className="flex items-center gap-1 text-slate-400">
+                                <Clock size={14} />
+                                <span>{lesson.estimated_minutes || 10}m</span>
+                              </div>
+                              {lesson.difficulty && (
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  lesson.difficulty === 'beginner' ? 'bg-emerald-500 bg-opacity-20 text-emerald-400' :
+                                  lesson.difficulty === 'intermediate' ? 'bg-warning-500 bg-opacity-20 text-warning-400' :
+                                  lesson.difficulty === 'advanced' ? 'bg-red-500 bg-opacity-20 text-red-400' :
+                                  'bg-purple-500 bg-opacity-20 text-purple-400'
+                                }`}>
+                                  {lesson.difficulty}
+                                </span>
+                              )}
+                            </div>
+
+                            {lessonUnlocked && (
+                              <ChevronRight
+                                className="text-slate-400 group-hover:text-primary-400 group-hover:translate-x-1 transition-all duration-250"
+                                size={20}
+                              />
                             )}
                           </div>
-                          <div className="text-left">
-                            <h4 className="text-white font-semibold">{lesson.title}</h4>
-                            <p className="text-slate-400 text-sm">{lesson.description}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-yellow-500 font-semibold">+{lesson.xp_reward} XP</span>
-                          {lessonUnlocked && <ChevronRight className="text-slate-400" size={20} />}
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
