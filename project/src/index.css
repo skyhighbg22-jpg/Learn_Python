@@ -37,7 +37,7 @@
 @layer components {
   /* Button enhancement classes */
   .btn-enhanced {
-    @apply transition-all duration-250 ease-smooth transform hover:scale-102 hover:shadow-lg active:scale-98;
+    @apply transition-all duration-250 ease-smooth transform hover:scale-105 hover:shadow-lg active:scale-98;
   }
 
   .btn-primary {
