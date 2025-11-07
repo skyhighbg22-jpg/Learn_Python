@@ -1,0 +1,75 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export type Profile = {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_character: string;
+  current_streak: number;
+  longest_streak: number;
+  total_xp: number;
+  current_level: number;
+  hearts: number;
+  last_heart_reset: string;
+  league: string;
+  learning_path: string | null;
+  daily_goal_minutes: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Lesson = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  xp_reward: number;
+  order_index: number;
+  section_id: string;
+  content: {
+    type: string;
+    question: string;
+    options?: string[];
+    correctAnswer?: string;
+    code?: string;
+  }[];
+  estimated_minutes: number;
+};
+
+export type Section = {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  order_index: number;
+  unlock_requirement_xp: number;
+};
+
+export type Achievement = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  requirement: Record<string, unknown>;
+  xp_reward: number;
+};
+
+export type DailyChallenge = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  xp_reward: number;
+  date: string;
+  problem: {
+    question: string;
+    starterCode: string;
+    testCases: Array<{ input: string; expectedOutput: string }>;
+  };
+};
