@@ -72,7 +72,7 @@
   }
 
   .nav-item-active {
-    @apply nav-item bg-primary-500 bg-opacity-20 text-primary-400 border-l-3 border-primary-500;
+    @apply nav-item bg-primary-500 bg-opacity-20 text-primary-400 border-l-4 border-primary-500;
   }
 
   /* Progress bar enhancement */
