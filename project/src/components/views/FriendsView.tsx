@@ -17,6 +17,26 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
+// XSS Protection: Content sanitization utilities
+const sanitizeHtml = (html: string): string => {
+  const div = document.createElement('div');
+  div.textContent = html;
+  return div.innerHTML;
+};
+
+const sanitizeString = (str: string): string => {
+  return str
+    .replace(/[<>]/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+};
+
+const validateInput = (input: string): string => {
+  if (typeof input !== 'string') return '';
+  if (input.length > 1000) return input.substring(0, 1000);
+  return sanitizeString(input.trim());
+};
+
 interface Friend {
   id: string;
   username: string;
