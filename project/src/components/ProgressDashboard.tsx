@@ -525,9 +525,7 @@ const ProgressDashboard: React.FC = () => {
               </div>
               <div className="flex items-center justify-between mt-2">
                 <span className="text-slate-400 text-sm">XP to Level Up</span>
-                <span className="text-yellow-400 text-sm font-semibold">
-                  {100 - ((profile?.total_xp || 0) % 100)} XP
-                </span>
+                <span className="text-yellow-400 text-sm font-semibold">{realStats.nextLevelXP} XP</span>
               </div>
             </div>
           </div>
