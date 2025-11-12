@@ -153,7 +153,7 @@ async function processUserStreak(profile: any, yesterdayStr: string) {
 
   let newStreak = current_streak
   let newHearts = hearts
-  let newMaxStreak = max_streak
+  let newMaxStreak = longest_streak
 
   if (wasActiveYesterday) {
     // User was active yesterday, maintain or increase streak
