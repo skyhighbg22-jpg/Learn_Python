@@ -50,19 +50,30 @@ export const ChallengesView = () => {
     if (!profile?.id) return;
 
     try {
+      setError(null);
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
       const today = new Date().toISOString().split('T')[0];
 
-      const { data: challengeData } = await supabase
+      const dataPromise = supabase
         .from('daily_challenges')
         .select('*')
         .eq('date', today)
         .maybeSingle();
 
-      if (challengeData) {
-        setTodayChallenge(challengeData);
+      const { data: challengeData, error: challengeError } = await Promise.race([dataPromise, timeoutPromise]) as any;
 
+      if (challengeError) throw challengeError;
+
+      setTodayChallenge(challengeData);
+
+      if (challengeData) {
         // Check completion status
-        const { data: completionData } = await supabase
+        const completionPromise = supabase
           .from('daily_challenge_attempts')
           .select('*')
           .eq('user_id', profile.id)
@@ -72,13 +83,23 @@ export const ChallengesView = () => {
           .limit(1)
           .maybeSingle();
 
+        const { data: completionData, error: completionError } = await Promise.race([completionPromise, timeoutPromise]) as any;
+
+        if (completionError) throw completionError;
+
         setCompletionData(completionData);
         setCompleted(!!completionData);
       }
 
-      setLoading(false);
-    } catch (error) {
+      setRetryCount(0);
+    } catch (error: any) {
       console.error('Error loading today\'s challenge:', error);
+      setError(error.message === 'Request timeout'
+        ? 'Connection timeout. Please check your internet connection.'
+        : 'Failed to load challenge. Please try again.'
+      );
+      setRetryCount(prev => prev + 1);
+    } finally {
       setLoading(false);
     }
   }, [profile?.id]);
