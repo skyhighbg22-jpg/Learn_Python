@@ -371,6 +371,3 @@ async function updateWeeklyLeaderboards() {
     console.error('Error updating weekly leaderboards:', updateError)
   }
 }
-
-// Health check endpoint
-Deno.serve(handleStreakMaintenance, { port: 8080 })
