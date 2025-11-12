@@ -295,13 +295,13 @@ SELECT
     COUNT(DISTINCT CASE WHEN p.signup_method = 'google' THEN p.id END) as google_users,
     COUNT(DISTINCT CASE WHEN p.signup_method = 'apple' THEN p.id END) as apple_users,
     COUNT(DISTINCT CASE WHEN p.signup_method = 'email' THEN p.id END) as email_users,
-    COUNT(DISTINCT CASE WHEN p.account_disabled = TRUE THEN p.id END) as disabled_users,
-    AVG(p.xp) as avg_xp,
-    MAX(p.xp) as max_xp,
+    COUNT(DISTINCT CASE WHEN COALESCE(p.account_disabled, FALSE) = TRUE THEN p.id END) as disabled_users,
+    COALESCE(AVG(p.total_xp), 0) as avg_xp,
+    COALESCE(MAX(p.total_xp), 0) as max_xp,
     COUNT(DISTINCT o.id) as total_oauth_connections
 FROM profiles p
 LEFT JOIN oauth_accounts o ON p.id = o.user_id
-WHERE p.account_disabled = FALSE;
+WHERE COALESCE(p.account_disabled, FALSE) = FALSE;
 
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO authenticated;
