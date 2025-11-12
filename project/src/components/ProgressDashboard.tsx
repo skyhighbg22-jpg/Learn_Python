@@ -340,23 +340,21 @@ const ProgressDashboard: React.FC = () => {
         <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <BookOpen className="w-8 h-8" />
-            <span className="text-2xl font-bold">
-              {progressData.reduce((sum, day) => sum + day.lessons_completed, 0)}
-            </span>
+            <span className="text-2xl font-bold">{realStats.totalLessons}</span>
           </div>
           <h3 className="text-lg font-semibold mb-1">Lessons Completed</h3>
-          <p className="text-green-100 text-sm">This {timeRange}</p>
+          <p className="text-green-100 text-sm">Total completed</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <Clock className="w-8 h-8" />
             <span className="text-2xl font-bold">
-              {Math.floor(progressData.reduce((sum, day) => sum + day.study_time, 0) / 60)}h
+              {Math.floor(realStats.totalStudyTime / 60)}h {realStats.totalStudyTime % 60}m
             </span>
           </div>
           <h3 className="text-lg font-semibold mb-1">Study Time</h3>
-          <p className="text-purple-100 text-sm">This {timeRange}</p>
+          <p className="text-purple-100 text-sm">Total time invested</p>
         </div>
       </div>
 
