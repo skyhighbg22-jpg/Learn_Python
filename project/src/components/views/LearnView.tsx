@@ -11,6 +11,7 @@ export const LearnView = () => {
   const [progress, setProgress] = useState<Record<string, any>>({});
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadContent();
