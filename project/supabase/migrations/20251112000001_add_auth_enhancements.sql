@@ -11,7 +11,8 @@ ADD COLUMN IF NOT EXISTS avatar_url TEXT,
 ADD COLUMN IF NOT EXISTS last_sign_in_at TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS email_verification_sent_at TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS account_disabled BOOLEAN DEFAULT FALSE,
-ADD COLUMN IF NOT EXISTS account_disabled_reason TEXT;
+ADD COLUMN IF NOT EXISTS account_disabled_reason TEXT,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Create email verification tokens table
 CREATE TABLE IF NOT EXISTS email_verification_tokens (
