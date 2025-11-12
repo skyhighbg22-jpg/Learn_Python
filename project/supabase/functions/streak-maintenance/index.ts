@@ -178,19 +178,24 @@ async function processUserStreak(profile: any, yesterdayStr: string) {
     await checkMaxStreakMilestones(id, newMaxStreak)
   }
 
-  // Update user profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      current_streak: newStreak,
-      max_streak: newMaxStreak,
-      last_active_date: new Date().toISOString().split('T')[0]
-    })
-    .eq('id', id)
+  // Update user profile with error handling
+  try {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        current_streak: newStreak,
+        longest_streak: newMaxStreak,
+        last_active_date: new Date().toISOString().split('T')[0]
+      })
+      .eq('id', id)
 
-  if (updateError) {
-    console.error(`Error updating profile ${id}:`, updateError)
-    throw updateError
+    if (updateError) {
+      console.error(`Error updating profile ${id}:`, updateError)
+      // Continue processing other users even if one fails
+    }
+  } catch (error) {
+    console.error(`Unexpected error updating profile ${id}:`, error)
+    // Continue processing other users
   }
 }
 
