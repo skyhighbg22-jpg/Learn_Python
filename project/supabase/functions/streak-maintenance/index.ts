@@ -202,28 +202,53 @@ async function processUserStreak(profile: any, yesterdayStr: string) {
 async function resetDailyHearts() {
   console.log('Resetting daily hearts for all users...')
 
-  // Get user preferences for heart settings
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, daily_goal_hearts')
-
-  if (!profiles) return
-
-  for (const profile of profiles) {
-    // Reset hearts to daily maximum (default: 5)
-    const maxHearts = profile.daily_goal_hearts || 5
-
-    const { error: updateError } = await supabase
+  try {
+    // Get user preferences for heart settings
+    const { data: profiles, error: fetchError } = await supabase
       .from('profiles')
-      .update({ hearts: maxHearts })
-      .eq('id', profile.id)
+      .select('id, daily_goal_hearts, hearts, max_hearts')
 
-    if (updateError) {
-      console.error(`Error resetting hearts for user ${profile.id}:`, updateError)
+    if (fetchError) {
+      console.error('Error fetching profiles for heart reset:', fetchError)
+      return
     }
-  }
 
-  console.log('Daily hearts reset completed')
+    if (!profiles || profiles.length === 0) {
+      console.log('No profiles found for heart reset')
+      return
+    }
+
+    // Process hearts reset in batches
+    const batchSize = 50
+    for (let i = 0; i < profiles.length; i += batchSize) {
+      const batch = profiles.slice(i, i + batchSize)
+
+      await Promise.all(batch.map(async (profile) => {
+        // Reset hearts to daily maximum (default: 5)
+        const maxHearts = profile.max_hearts || profile.daily_goal_hearts || 5
+
+        try {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              hearts: maxHearts,
+              last_heart_reset: new Date().toISOString().split('T')[0]
+            })
+            .eq('id', profile.id)
+
+          if (updateError) {
+            console.error(`Error resetting hearts for user ${profile.id}:`, updateError)
+          }
+        } catch (error) {
+          console.error(`Unexpected error resetting hearts for user ${profile.id}:`, error)
+        }
+      }))
+    }
+
+    console.log(`Daily hearts reset completed for ${profiles.length} users`)
+  } catch (error) {
+    console.error('Error in resetDailyHearts:', error)
+  }
 }
 
 async function checkStreakMilestones(userId: string, streak: number) {
