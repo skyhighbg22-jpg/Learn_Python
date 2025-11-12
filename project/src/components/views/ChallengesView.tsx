@@ -7,42 +7,216 @@ import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 
+interface ChallengeCompletion {
+  id: string;
+  score: number;
+  completion_time: number;
+  attempts: number;
+}
+
+interface ChallengeHistory {
+  id: string;
+  challenge: DailyChallenge;
+  completion: ChallengeCompletion;
+  completed_at: string;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  avatar: string;
+  score: number;
+  completion_time: number;
+  level: number;
+}
+
 export const ChallengesView = () => {
   const { profile } = useAuth();
+  const { addNotification } = useNotifications();
   const [todayChallenge, setTodayChallenge] = useState<DailyChallenge | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [completionData, setCompletionData] = useState<ChallengeCompletion | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<'today' | 'history' | 'leaderboard'>('today');
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isStarting, setIsStarting] = useState(false);
 
-  useEffect(() => {
-    loadTodayChallenge();
-  }, [profile]);
+  // Load today's challenge
+  const loadTodayChallenge = useCallback(async () => {
+    if (!profile?.id) return;
 
-  const loadTodayChallenge = async () => {
-    const today = new Date().toISOString().split('T')[0];
+    try {
+      const today = new Date().toISOString().split('T')[0];
 
-    const { data: challengeData } = await supabase
-      .from('daily_challenges')
-      .select('*')
-      .eq('date', today)
-      .maybeSingle();
+      const { data: challengeData } = await supabase
+        .from('daily_challenges')
+        .select('*')
+        .eq('date', today)
+        .maybeSingle();
 
-    if (challengeData) {
-      setTodayChallenge(challengeData);
+      if (challengeData) {
+        setTodayChallenge(challengeData);
 
-      if (profile) {
+        // Check completion status
         const { data: completionData } = await supabase
-          .from('user_challenge_completions')
+          .from('daily_challenge_attempts')
           .select('*')
           .eq('user_id', profile.id)
           .eq('challenge_id', challengeData.id)
+          .eq('completed', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
+        setCompletionData(completionData);
         setCompleted(!!completionData);
       }
-    }
 
-    setLoading(false);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading today\'s challenge:', error);
+      setLoading(false);
+    }
+  }, [profile?.id]);
+
+  // Load challenge history
+  const loadChallengeHistory = useCallback(async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data } = await supabase
+        .from('daily_challenge_attempts')
+        .select(`
+          *,
+          daily_challenges!inner(*)
+        `)
+        .eq('user_id', profile.id)
+        .eq('completed', true)
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      if (data) {
+        const history: ChallengeHistory[] = data.map(item => ({
+          id: item.id,
+          challenge: item.daily_challenges,
+          completion: {
+            id: item.id,
+            score: item.score,
+            completion_time: item.completion_time,
+            attempts: item.attempts
+          },
+          completed_at: item.created_at
+        }));
+
+        setChallengeHistory(history);
+      }
+    } catch (error) {
+      console.error('Error loading challenge history:', error);
+    }
+  }, [profile?.id]);
+
+  // Load leaderboard
+  const loadLeaderboard = useCallback(async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+
+      const { data } = await supabase
+        .from('daily_challenge_attempts')
+        .select(`
+          score,
+          completion_time,
+          profiles!inner(username, avatar_url, level)
+        `)
+        .eq('challenge_date', today)
+        .eq('completed', true)
+        .order('score', { ascending: false })
+        .order('completion_time', { ascending: true })
+        .limit(10);
+
+      if (data) {
+        const leaderboardData: LeaderboardEntry[] = data.map((item, index) => ({
+          rank: index + 1,
+          username: item.profiles.username,
+          avatar: item.profiles.avatar_url || '',
+          score: item.score,
+          completion_time: item.completion_time,
+          level: item.profiles.level
+        }));
+
+        setLeaderboard(leaderboardData);
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+    }
+  }, []);
+
+  // Start challenge
+  const startChallenge = async () => {
+    if (!todayChallenge || !profile?.id) return;
+
+    setIsStarting(true);
+    try {
+      // Create challenge attempt record
+      const { error } = await supabase
+        .from('daily_challenge_attempts')
+        .insert({
+          user_id: profile.id,
+          challenge_id: todayChallenge.id,
+          challenge_date: todayChallenge.date,
+          score: 0,
+          completed: false,
+          attempts: 1,
+          completion_time: 0,
+          started_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Navigate to challenge (this would integrate with your routing)
+      addNotification(createNotificationTypes.dailyChallengeCompleted(todayChallenge.title, 0));
+
+    } catch (error) {
+      console.error('Error starting challenge:', error);
+    } finally {
+      setIsStarting(false);
+    }
   };
+
+  // Update time left for today's challenge
+  useEffect(() => {
+    const updateTimeLeft = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      const diff = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeLeft(`${hours}h ${minutes}m`);
+    };
+
+    updateTimeLeft();
+    const interval = setInterval(updateTimeLeft, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Load data based on selected tab
+  useEffect(() => {
+    loadTodayChallenge();
+  }, [loadTodayChallenge]);
+
+  useEffect(() => {
+    if (selectedTab === 'history') {
+      loadChallengeHistory();
+    } else if (selectedTab === 'leaderboard') {
+      loadLeaderboard();
+    }
+  }, [selectedTab, loadChallengeHistory, loadLeaderboard]);
 
   if (loading) {
     return (
