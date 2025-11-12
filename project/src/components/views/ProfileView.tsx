@@ -1,8 +1,14 @@
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Flame, Zap, Trophy, Target } from 'lucide-react';
+import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3 } from 'lucide-react';
+import AchievementService, { AchievementProgress } from '../../services/achievementService';
 
 export const ProfileView = () => {
   const { profile } = useAuth();
+  const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
+  const [achievementStats, setAchievementStats] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
 
   if (!profile) return null;
 
