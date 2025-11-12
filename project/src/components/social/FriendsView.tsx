@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Users, UserPlus, Search, MessageCircle, Trophy, Star, Clock,
   Activity, Heart, Share2, MoreHorizontal, UserMinus, Check,
-  X, Send
+  X, Send, BookOpen, Flame, Zap
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
