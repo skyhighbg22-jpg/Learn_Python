@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications, createNotificationTypes } from '../../contexts/NotificationContext';
 
 interface ChallengeCompletion {
   id: string;
