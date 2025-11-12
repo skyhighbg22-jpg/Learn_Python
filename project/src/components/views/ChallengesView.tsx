@@ -32,7 +32,17 @@ interface LeaderboardEntry {
 
 export const ChallengesView = () => {
   const { profile } = useAuth();
-  const { addNotification } = useNotifications();
+  // Graceful fallback for NotificationContext
+  let addNotification: (notification: any) => void;
+  try {
+    const notificationContext = useNotifications();
+    addNotification = notificationContext.addNotification;
+  } catch (error) {
+    // Fallback if NotificationContext doesn't exist
+    addNotification = (notification) => {
+      console.log('Notification:', notification);
+    };
+  }
   const [todayChallenge, setTodayChallenge] = useState<DailyChallenge | null>(null);
   const [completed, setCompleted] = useState(false);
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
