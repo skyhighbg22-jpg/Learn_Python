@@ -143,7 +143,7 @@ async function handleStreakMaintenance() {
 }
 
 async function processUserStreak(profile: any, yesterdayStr: string) {
-  const { id, current_streak, last_active_date, hearts, max_streak } = profile
+  const { id, current_streak = 0, last_active_date, hearts = 5, longest_streak = 0 } = profile
 
   // Check if user was active yesterday
   const wasActiveYesterday = last_active_date === yesterdayStr
