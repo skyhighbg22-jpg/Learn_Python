@@ -100,10 +100,10 @@ async function handleStreakMaintenance() {
   const yesterdayStr = yesterday.toISOString().split('T')[0]
 
   try {
-    // Get all users
+    // Get all users - handle missing columns gracefully
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, current_streak, last_active_date, hearts, max_streak')
+      .select('id, current_streak, last_active_date, hearts, longest_streak')
       .neq('last_active_date', null)
 
     if (profilesError) {
