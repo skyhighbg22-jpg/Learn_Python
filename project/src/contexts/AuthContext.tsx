@@ -6,10 +6,14 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, username: string, fullName?: string) => Promise<{ user: User; needsVerification: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ user: User; needsVerification: boolean }>;
+  signInWithGoogle: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
+  signInWithApple: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
