@@ -267,8 +267,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to update updated_at timestamp for oauth_accounts
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- Trigger to update updated_at timestamp for profiles
+CREATE OR REPLACE FUNCTION update_profiles_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -276,10 +276,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER profiles_updated_at
+    BEFORE UPDATE ON profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_profiles_updated_at_column();
+
+-- Trigger to update updated_at timestamp for oauth_accounts
 CREATE TRIGGER oauth_accounts_updated_at
     BEFORE UPDATE ON oauth_accounts
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION update_profiles_updated_at_column();
 
 -- Create view for user authentication statistics
 CREATE OR REPLACE VIEW auth_statistics AS
