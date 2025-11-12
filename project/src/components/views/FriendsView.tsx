@@ -551,7 +551,7 @@ export const FriendsView = () => {
                         {new Date(item.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-slate-300">{item.message}</p>
+                    <p className="text-slate-300">{sanitizeString(item.message)}</p>
 
                     {item.type === 'lesson_completed' && (
                       <div className="mt-2 flex items-center gap-2">
