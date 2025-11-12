@@ -1,10 +1,40 @@
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Flame, Zap, Trophy, Target } from 'lucide-react';
+import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3 } from 'lucide-react';
+import AchievementService, { AchievementProgress } from '../../services/achievementService';
 
 export const ProfileView = () => {
   const { profile } = useAuth();
+  const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
+  const [achievementStats, setAchievementStats] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
 
   if (!profile) return null;
+
+  // Load achievement data
+  useEffect(() => {
+    const loadAchievementData = async () => {
+      if (!profile?.id) return;
+
+      try {
+        setLoading(true);
+        const [progress, stats] = await Promise.all([
+          AchievementService.getAchievementProgress(profile.id),
+          AchievementService.getAchievementStats(profile.id)
+        ]);
+
+        setAchievementProgress(progress);
+        setAchievementStats(stats);
+      } catch (error) {
+        console.error('Error loading achievement data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAchievementData();
+  }, [profile?.id]);
 
   const stats = [
     {
@@ -29,16 +59,61 @@ export const ProfileView = () => {
       bgColor: 'bg-blue-500/10',
     },
     {
-      label: 'Current Level',
-      value: profile.current_level,
-      icon: Target,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10',
+      label: 'Achievements',
+      value: `${achievementStats?.unlocked || 0}/${achievementStats?.total || 0}`,
+      icon: Medal,
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-500/10',
     },
   ];
 
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'text-gray-400';
+      case 'rare': return 'text-blue-400';
+      case 'epic': return 'text-purple-400';
+      case 'legendary': return 'text-yellow-400';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getRarityBg = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'bg-gray-500/20';
+      case 'rare': return 'bg-blue-500/20';
+      case 'epic': return 'bg-purple-500/20';
+      case 'legendary': return 'bg-yellow-500/20';
+      default: return 'bg-gray-500/20';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'progress': return <TrendingUp className="w-4 h-4" />;
+      case 'streak': return <Flame className="w-4 h-4" />;
+      case 'xp': return <Zap className="w-4 h-4" />;
+      case 'social': return <Star className="w-4 h-4" />;
+      case 'special': return <Award className="w-4 h-4" />;
+      default: return <Medal className="w-4 h-4" />;
+    }
+  };
+
+  const filteredAchievements = selectedCategory === 'all'
+    ? achievementProgress
+    : achievementProgress.filter(a => a.achievement.category === selectedCategory);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-6xl mx-auto p-8">
       <div className="bg-slate-800 rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-6 mb-6">
           <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
@@ -70,6 +145,170 @@ export const ProfileView = () => {
         </div>
       </div>
 
+      {/* Achievements Section */}
+      <div className="bg-slate-800 rounded-2xl p-8 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white">Achievements</h2>
+          <div className="flex items-center gap-2">
+            <Grid3X3 className="w-5 h-5 text-slate-400" />
+            <span className="text-slate-400">
+              {achievementStats?.completion_rate || 0}% Complete
+            </span>
+          </div>
+        </div>
+
+        {/* Achievement Stats Overview */}
+        {achievementStats && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {Object.entries(achievementStats.by_category).map(([category, stats]: [string, any]) => (
+              <div key={category} className="bg-slate-700 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  {getCategoryIcon(category)}
+                  <span className="text-white text-sm font-semibold capitalize">
+                    {category}
+                  </span>
+                </div>
+                <p className="text-slate-400 text-xs">
+                  {stats.unlocked}/{stats.total}
+                </p>
+                <div className="mt-2 bg-slate-600 rounded-full h-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${(stats.unlocked / stats.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              selectedCategory === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            All ({achievementProgress.length})
+          </button>
+          {['progress', 'streak', 'xp', 'social', 'special'].map(category => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize flex items-center gap-2 ${
+                selectedCategory === category
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              {getCategoryIcon(category)}
+              {category}
+              <span className="text-xs">
+                ({achievementProgress.filter(a => a.achievement.category === category).length})
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Achievements Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredAchievements.map((achievement) => (
+            <div
+              key={achievement.achievement.id}
+              className={`relative border rounded-lg p-4 transition-all ${
+                achievement.is_unlocked
+                  ? `${getRarityBg(achievement.achievement.rarity)} ${getRarityColor(achievement.achievement.rarity)} border-${achievement.achievement.rarity === 'legendary' ? 'yellow' : achievement.achievement.rarity === 'epic' ? 'purple' : achievement.achievement.rarity === 'rare' ? 'blue' : 'gray'}-500/30`
+                  : 'bg-slate-700/50 border-slate-600 opacity-60'
+              }`}
+            >
+              {/* Achievement Icon */}
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-lg ${
+                  achievement.is_unlocked
+                    ? getRarityBg(achievement.achievement.rarity)
+                    : 'bg-slate-600'
+                }`}>
+                  {achievement.is_unlocked ? (
+                    <Trophy className={`w-6 h-6 ${getRarityColor(achievement.achievement.rarity)}`} />
+                  ) : (
+                    <Lock className="w-6 h-6 text-slate-500" />
+                  )}
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                  achievement.is_unlocked
+                    ? getRarityBg(achievement.achievement.rarity)
+                    : 'bg-slate-600'
+                }`}>
+                  {achievement.achievement.rarity.toUpperCase()}
+                </span>
+              </div>
+
+              {/* Achievement Info */}
+              <h3 className={`font-semibold mb-1 ${
+                achievement.is_unlocked ? 'text-white' : 'text-slate-400'
+              }`}>
+                {achievement.achievement.title}
+              </h3>
+              <p className={`text-sm mb-3 ${
+                achievement.is_unlocked ? 'text-slate-300' : 'text-slate-500'
+              }`}>
+                {achievement.achievement.description}
+              </p>
+
+              {/* Progress Bar */}
+              {!achievement.is_unlocked && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Progress</span>
+                    <span className="text-slate-400">
+                      {achievement.current_value}/{achievement.target_value}
+                    </span>
+                  </div>
+                  <div className="bg-slate-600 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{ width: `${achievement.progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* XP Reward */}
+              {achievement.achievement.xp_reward > 0 && (
+                <div className={`flex items-center gap-1 mt-2 text-xs ${
+                  achievement.is_unlocked ? 'text-yellow-400' : 'text-slate-500'
+                }`}>
+                  <Zap className="w-3 h-3" />
+                  +{achievement.achievement.xp_reward} XP
+                </div>
+              )}
+
+              {/* Unlocked Badge */}
+              {achievement.is_unlocked && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {filteredAchievements.length === 0 && (
+          <div className="text-center py-8">
+            <Lock className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+            <p className="text-slate-400">No achievements found in this category</p>
+          </div>
+        )}
+      </div>
+
+      {/* Learning Progress Section */}
       <div className="bg-slate-800 rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-white mb-6">Learning Progress</h2>
 
