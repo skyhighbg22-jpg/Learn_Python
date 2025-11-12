@@ -18,45 +18,56 @@ export const LearnView = () => {
   }, []);
 
   const loadContent = async () => {
-    const { data: sectionsData } = await supabase
-      .from('sections')
-      .select('*')
-      .order('order_index');
+    try {
+      setError(null);
+      setLoading(true);
 
-    if (sectionsData) {
-      setSections(sectionsData);
+      // Single query to get sections with lessons (optimizes N+1 query problem)
+      const { data: sectionsWithLessons, error: sectionsError } = await supabase
+        .from('sections')
+        .select(`
+          *,
+          lessons (*)
+        `)
+        .order('order_index');
 
-      const lessonsMap: Record<string, Lesson[]> = {};
-      for (const section of sectionsData) {
-        const { data: lessonsData } = await supabase
-          .from('lessons')
-          .select('*')
-          .eq('section_id', section.id)
-          .order('order_index');
+      if (sectionsError) throw sectionsError;
 
-        if (lessonsData) {
-          lessonsMap[section.id] = lessonsData;
+      // Process and set data
+      if (sectionsWithLessons) {
+        setSections(sectionsWithLessons);
+
+        // Process lessons into map
+        const lessonsMap: Record<string, Lesson[]> = {};
+        sectionsWithLessons.forEach(section => {
+          lessonsMap[section.id] = section.lessons || [];
+        });
+        setLessons(lessonsMap);
+
+        // Load progress if user is logged in
+        if (profile?.id) {
+          const { data: progressData, error: progressError } = await supabase
+            .from('user_lesson_progress')
+            .select('*')
+            .eq('user_id', profile.id);
+
+          if (progressError) throw progressError;
+
+          if (progressData) {
+            const progressMap = progressData.reduce((acc, p) => {
+              acc[p.lesson_id] = p;
+              return acc;
+            }, {} as Record<string, any>);
+            setProgress(progressMap);
+          }
         }
       }
-      setLessons(lessonsMap);
-
-      if (profile) {
-        const { data: progressData } = await supabase
-          .from('user_lesson_progress')
-          .select('*')
-          .eq('user_id', profile.id);
-
-        if (progressData) {
-          const progressMap = progressData.reduce((acc, p) => {
-            acc[p.lesson_id] = p;
-            return acc;
-          }, {} as Record<string, any>);
-          setProgress(progressMap);
-        }
-      }
+    } catch (error) {
+      console.error('Failed to load content:', error);
+      setError('Failed to load lessons. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const isLessonUnlocked = (lesson: Lesson, section: Section) => {
