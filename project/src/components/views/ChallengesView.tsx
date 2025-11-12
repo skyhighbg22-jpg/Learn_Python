@@ -42,6 +42,8 @@ export const ChallengesView = () => {
   const [selectedTab, setSelectedTab] = useState<'today' | 'history' | 'leaderboard'>('today');
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isStarting, setIsStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Load today's challenge
   const loadTodayChallenge = useCallback(async () => {
