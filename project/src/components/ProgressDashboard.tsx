@@ -491,12 +491,12 @@ const ProgressDashboard: React.FC = () => {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-slate-300">Accuracy Rate</span>
-                <span className="text-white font-semibold">87%</span>
+                <span className="text-white font-semibold">{Math.round(realStats.averageAccuracy)}%</span>
               </div>
               <div className="bg-slate-700 rounded-full h-2">
                 <div
                   className="bg-green-500 h-2 rounded-full transition-all"
-                  style={{ width: '87%' }}
+                  style={{ width: `${Math.min(100, realStats.averageAccuracy)}%` }}
                 />
               </div>
             </div>
@@ -504,12 +504,16 @@ const ProgressDashboard: React.FC = () => {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-slate-300">Goal Progress</span>
-                <span className="text-white font-semibold">92%</span>
+                <span className="text-white font-semibold">
+                  {Math.min(100, Math.round((realStats.totalLessons / Math.max(1, timeRange === 'week' ? 5 : timeRange === 'month' ? 20 : 50)) * 100))}%
+                </span>
               </div>
               <div className="bg-slate-700 rounded-full h-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all"
-                  style={{ width: '92%' }}
+                  style={{
+                    width: `${Math.min(100, Math.round((realStats.totalLessons / Math.max(1, timeRange === 'week' ? 5 : timeRange === 'month' ? 20 : 50)) * 100))}%`
+                  }}
                 />
               </div>
             </div>
