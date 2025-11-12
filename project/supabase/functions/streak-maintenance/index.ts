@@ -1,60 +1,94 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Import security middleware
+import {
+  authenticateRequest,
+  checkRateLimit,
+  corsHeaders,
+  createErrorResponse,
+  createSuccessResponse,
+  addSecurityHeaders,
+  logSecurityEvent
+} from '../shared/auth-middleware.ts'
+
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return addSecurityHeaders(new Response('ok', { headers: corsHeaders }))
   }
 
   try {
     const url = new URL(req.url)
     const { pathname } = url
 
+    // Get client IP for rate limiting
+    const clientIP = req.headers.get('x-forwarded-for') ||
+                   req.headers.get('x-real-ip') ||
+                   'unknown'
+
+    // Rate limiting check
+    const rateLimitResult = checkRateLimit(clientIP, 10, 60000) // 10 requests per minute
+    if (!rateLimitResult.allowed) {
+      logSecurityEvent('RATE_LIMIT_EXCEEDED', {
+        ip: clientIP,
+        path: pathname,
+        severity: 'high'
+      })
+      return createErrorResponse(rateLimitResult.error!, 429)
+    }
+
     // Only process POST requests for security
     if (req.method !== 'POST') {
-      return new Response('Method not allowed', {
-        status: 405,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      logSecurityEvent('INVALID_METHOD', {
+        method: req.method,
+        path: pathname,
+        ip: clientIP,
+        severity: 'medium'
       })
+      return createErrorResponse('Method not allowed', 405)
+    }
+
+    // SECURE: This endpoint should only be callable by authorized service accounts
+    // For now, we'll check for a special service key
+    const serviceKey = req.headers.get('x-service-key')
+    if (serviceKey !== Deno.env.get('STREAK_MAINTENANCE_SERVICE_KEY')) {
+      logSecurityEvent('UNAUTHORIZED_ACCESS', {
+        path: pathname,
+        ip: clientIP,
+        severity: 'critical'
+      })
+      return createErrorResponse('Unauthorized', 401)
     }
 
     if (pathname === '/streak-maintenance') {
       await handleStreakMaintenance()
-      return new Response(
-        JSON.stringify({ message: 'Streak maintenance completed successfully' }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+
+      logSecurityEvent('STREAK_MAINTENANCE_COMPLETED', {
+        severity: 'info'
+      })
+
+      const response = createSuccessResponse({
+        message: 'Streak maintenance completed successfully'
+      })
+      return addSecurityHeaders(response)
     }
 
-    return new Response('Not found', {
-      status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return createErrorResponse('Not found', 404)
 
   } catch (error) {
     console.error('Error in streak-maintenance function:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
+    logSecurityEvent('FUNCTION_ERROR', {
+      error: error.message,
+      severity: 'high'
+    })
+    return createErrorResponse('Internal server error', 500)
   }
 })
 
