@@ -315,16 +315,41 @@ except Exception as e:
     });
   }
 
-  // Generate mock output for demonstration
+  // Generate mock output for demonstration (SECURE VERSION)
   private generateMockOutput(code: string): string {
     // Simple mock that generates different outputs based on code content
     if (code.includes('print(')) {
-      // Extract print statements
+      // Extract print statements - SECURE VERSION WITHOUT eval()
       const printMatches = code.match(/print\s*\(\s*([^)]+)\s*\)/g);
       if (printMatches) {
         return printMatches.map(match => {
           const content = match.match(/print\s*\(\s*([^)]+)\s*\)/)?.[1];
-          return content ? eval(content) : '';
+
+          // SECURE: Parse print content safely without eval()
+          if (!content) return '';
+
+          // Handle string literals
+          if ((content.startsWith('"') && content.endsWith('"')) ||
+              (content.startsWith("'") && content.endsWith("'"))) {
+            return content.slice(1, -1); // Remove quotes
+          }
+
+          // Handle basic arithmetic expressions safely
+          if (/^[\d+\-*/.() ]+$/.test(content)) {
+            try {
+              return String(Function('"use strict"; return (' + content + ')')());
+            } catch {
+              return content;
+            }
+          }
+
+          // Handle variables safely
+          if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(content)) {
+            return `[Variable: ${content}]`;
+          }
+
+          // Default: return the content as-is
+          return content;
         }).join('\\n');
       }
     }
