@@ -67,7 +67,7 @@ CREATE INDEX IF NOT EXISTS idx_auth_audit_log_action ON auth_audit_log(action);
 -- Add index for profile authentication columns
 CREATE INDEX IF NOT EXISTS idx_profiles_email_confirmed ON profiles(email_confirmed);
 CREATE INDEX IF NOT EXISTS idx_profiles_signup_method ON profiles(signup_method);
-CREATE INDEX IF NOT EXISTS idx_profiles_last_active_date ON profiles(last_active_date);
+-- Note: last_active_date index removed - column doesn't exist in current schema
 
 -- Row Level Security (RLS) Policies
 
