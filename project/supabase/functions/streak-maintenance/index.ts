@@ -110,11 +110,20 @@ async function handleStreakMaintenance() {
       throw new Error(`Error fetching profiles: ${profilesError.message}`)
     }
 
-    console.log(`Processing ${profiles.length} users for streak maintenance`)
+    console.log(`Processing ${profiles?.length || 0} users for streak maintenance`)
 
-    // Process each user's streak
-    for (const profile of profiles) {
-      await processUserStreak(profile, yesterdayStr)
+    if (!profiles || profiles.length === 0) {
+      console.log('No users found for streak maintenance')
+      return
+    }
+
+    // Process users in batches to avoid timeouts
+    const batchSize = 50
+    for (let i = 0; i < profiles.length; i += batchSize) {
+      const batch = profiles.slice(i, i + batchSize)
+      console.log(`Processing batch ${Math.floor(i/batchSize) + 1} with ${batch.length} users`)
+
+      await Promise.all(batch.map(profile => processUserStreak(profile, yesterdayStr)))
     }
 
     // Reset hearts for all users
