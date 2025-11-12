@@ -209,7 +209,12 @@ export const ChallengesView = () => {
       if (error) throw error;
 
       // Navigate to challenge (this would integrate with your routing)
-      addNotification(createNotificationTypes.dailyChallengeCompleted(todayChallenge.title, 0));
+      addNotification({
+        type: 'success',
+        title: 'Challenge Started',
+        message: todayChallenge.title,
+        duration: 3000
+      });
 
     } catch (error) {
       console.error('Error starting challenge:', error);
