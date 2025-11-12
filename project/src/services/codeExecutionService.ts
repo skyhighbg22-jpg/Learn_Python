@@ -228,8 +228,8 @@ try:
     if 'main' in locals():
         actual_output = main(input_data)
     else:
-        # If no main function, try to evaluate the last expression
-        actual_output = eval('result')
+        # SECURE: If no main function, use safe result retrieval
+        actual_output = locals().get('result', None)
 
     test_result = {
         'input': input_data,
