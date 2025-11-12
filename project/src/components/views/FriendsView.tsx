@@ -90,7 +90,7 @@ export const FriendsView = () => {
       if (friendsError) throw friendsError;
       setFriends(friendsData?.map(f => f.friend) || []);
 
-      // Load friend requests
+      // Load friend requests - SECURE VERSION with proper filtering
       const { data: requestsData, error: requestsError } = await supabase
         .from('friendships')
         .select(`
@@ -99,7 +99,8 @@ export const FriendsView = () => {
             username, full_name, avatar_url, xp, level
           )
         `)
-        .or(`receiver_id.eq.${user?.id},status.eq.pending`)
+        .eq('receiver_id', user?.id)
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
