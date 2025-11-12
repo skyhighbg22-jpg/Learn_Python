@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Target, Calendar, Zap, Trophy } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  Target, Calendar, Zap, Trophy, Clock, CheckCircle, Users,
+  TrendingUp, Award, Star, Play, RotateCcw, History
+} from 'lucide-react';
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export const ChallengesView = () => {
   const { profile } = useAuth();
