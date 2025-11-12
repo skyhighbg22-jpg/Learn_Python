@@ -323,13 +323,34 @@ async function awardStreakAchievements(userId: string, streak: number) {
   const xpReward = xpRewards[streak as keyof typeof xpRewards]
 
   if (xpReward) {
-    const { error: xpError } = await supabase.rpc('award_achievement_xp', {
-      p_user_id: userId,
-      p_xp_amount: xpReward
-    })
+    try {
+      const { error: xpError } = await supabase.rpc('award_achievement_xp', {
+        p_user_id: userId,
+        p_achievement_id: null, // Allow null achievement_id
+        p_xp_amount: xpReward
+      })
 
-    if (xpError) {
-      console.error(`Error awarding streak XP for user ${userId}:`, xpError)
+      if (xpError) {
+        console.error(`Error awarding streak XP for user ${userId}:`, xpError)
+        // Fallback: Direct XP update if RPC fails
+        try {
+          const { error: fallbackError } = await supabase
+            .from('profiles')
+            .update({
+              total_xp: supabase.raw(`total_xp + ${xpReward}`),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+
+          if (fallbackError) {
+            console.error(`Fallback XP update failed for user ${userId}:`, fallbackError)
+          }
+        } catch (fallbackError) {
+          console.error(`Unexpected fallback error for user ${userId}:`, fallbackError)
+        }
+      }
+    } catch (error) {
+      console.error(`Unexpected error awarding XP for user ${userId}:`, error)
     }
   }
 }
