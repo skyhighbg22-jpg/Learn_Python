@@ -464,10 +464,22 @@ INSERT INTO lessons (title, description, difficulty, xp_reward, order_index, sec
  'code', 20)
 ON CONFLICT DO NOTHING;
 
--- Insert sample daily challenges
+-- Insert comprehensive daily challenges
 INSERT INTO daily_challenges (title, description, difficulty, xp_reward, date, problem) VALUES
-('Python Variables Challenge', 'Test your knowledge of Python variables', 'easy', 50, CURRENT_DATE,
- '{"type": "quiz", "questions": [{"question": "What is a variable?", "options": ["Storage location", "A type", "A function"], "answer": "Storage location"}]}')
+('Python Variables Challenge', 'Test your knowledge of Python variables and data types', 'easy', 50, CURRENT_DATE,
+ '{"type": "quiz", "questions": [{"question": "What is a variable?", "options": ["Storage location for data", "A type", "A function", "A loop"], "correctAnswer": "Storage location for data"}, {"question": "Which creates a variable named x with value 5?", "options": ["x = 5", "var x = 5", "x := 5", "x == 5"], "correctAnswer": "x = 5"}, {"question": "What data type is \"Hello\"?", "options": ["int", "float", "str", "bool"], "correctAnswer": "str"}]}'),
+
+('Python Basics Quiz', 'Challenge your understanding of Python fundamentals', 'easy', 40, CURRENT_DATE + INTERVAL \'1 day',
+ '{"type": "quiz", "questions": [{"question": "Who created Python?", "options": ["Guido van Rossum", "James Gosling", "Bjarne Stroustrup", "Dennis Ritchie"], "correctAnswer": "Guido van Rossum"}, {"question": "What year was Python released?", "options": ["1989", "1991", "1995", "2000"], "correctAnswer": "1991"}]}'),
+
+('Code Challenge: Hello World', 'Write your first Python program!', 'easy', 30, CURRENT_DATE + INTERVAL \'2 days',
+ '{"type": "code", "question": "Write a program that prints your name to the console", "starterCode": "# Print your name here\nprint()", "solution": "print(\"Your Name\")", "hints": ["Use the print() function", "Put your name in quotes"]}'),
+
+('Data Types Challenge', 'Test your knowledge of Python data types', 'medium', 60, CURRENT_DATE + INTERVAL \'3 days',
+ '{"type": "quiz", "questions": [{"question": "What type is 3.14?", "options": ["int", "float", "str", "bool"], "correctAnswer": "float"}, {"question": "How do you convert \"123\" to a number?", "options": ["int(\"123\")", "number(\"123\")", "convert(\"123\")", "str(\"123\")"], "correctAnswer": "int(\"123\")"}]}'),
+
+('Conditional Logic Challenge', 'Master if statements and conditions', 'medium', 70, CURRENT_DATE + INTERVAL \'4 days',
+ '{"type": "code", "question": "Write an if statement that prints \"Pass\" if score >= 60", "starterCode": "score = 75\n# Your code here", "solution": "if score >= 60:\n    print(\"Pass\")", "testCases": [{"expectedOutput": "Pass"}]}')
 ON CONFLICT (date) DO NOTHING;
 
 -- Insert sample achievements
