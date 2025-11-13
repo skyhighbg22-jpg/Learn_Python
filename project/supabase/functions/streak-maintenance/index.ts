@@ -100,21 +100,30 @@ async function handleStreakMaintenance() {
   const yesterdayStr = yesterday.toISOString().split('T')[0]
 
   try {
-    // Get all users
+    // Get all users - handle missing columns gracefully
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, current_streak, last_active_date, hearts, max_streak')
+      .select('id, current_streak, last_active_date, hearts, longest_streak')
       .neq('last_active_date', null)
 
     if (profilesError) {
       throw new Error(`Error fetching profiles: ${profilesError.message}`)
     }
 
-    console.log(`Processing ${profiles.length} users for streak maintenance`)
+    console.log(`Processing ${profiles?.length || 0} users for streak maintenance`)
 
-    // Process each user's streak
-    for (const profile of profiles) {
-      await processUserStreak(profile, yesterdayStr)
+    if (!profiles || profiles.length === 0) {
+      console.log('No users found for streak maintenance')
+      return
+    }
+
+    // Process users in batches to avoid timeouts
+    const batchSize = 50
+    for (let i = 0; i < profiles.length; i += batchSize) {
+      const batch = profiles.slice(i, i + batchSize)
+      console.log(`Processing batch ${Math.floor(i/batchSize) + 1} with ${batch.length} users`)
+
+      await Promise.all(batch.map(profile => processUserStreak(profile, yesterdayStr)))
     }
 
     // Reset hearts for all users
@@ -134,7 +143,7 @@ async function handleStreakMaintenance() {
 }
 
 async function processUserStreak(profile: any, yesterdayStr: string) {
-  const { id, current_streak, last_active_date, hearts, max_streak } = profile
+  const { id, current_streak = 0, last_active_date, hearts = 5, longest_streak = 0 } = profile
 
   // Check if user was active yesterday
   const wasActiveYesterday = last_active_date === yesterdayStr
@@ -144,7 +153,7 @@ async function processUserStreak(profile: any, yesterdayStr: string) {
 
   let newStreak = current_streak
   let newHearts = hearts
-  let newMaxStreak = max_streak
+  let newMaxStreak = longest_streak
 
   if (wasActiveYesterday) {
     // User was active yesterday, maintain or increase streak
@@ -169,47 +178,77 @@ async function processUserStreak(profile: any, yesterdayStr: string) {
     await checkMaxStreakMilestones(id, newMaxStreak)
   }
 
-  // Update user profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      current_streak: newStreak,
-      max_streak: newMaxStreak,
-      last_active_date: new Date().toISOString().split('T')[0]
-    })
-    .eq('id', id)
+  // Update user profile with error handling
+  try {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        current_streak: newStreak,
+        longest_streak: newMaxStreak,
+        last_active_date: new Date().toISOString().split('T')[0]
+      })
+      .eq('id', id)
 
-  if (updateError) {
-    console.error(`Error updating profile ${id}:`, updateError)
-    throw updateError
+    if (updateError) {
+      console.error(`Error updating profile ${id}:`, updateError)
+      // Continue processing other users even if one fails
+    }
+  } catch (error) {
+    console.error(`Unexpected error updating profile ${id}:`, error)
+    // Continue processing other users
   }
 }
 
 async function resetDailyHearts() {
   console.log('Resetting daily hearts for all users...')
 
-  // Get user preferences for heart settings
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, daily_goal_hearts')
-
-  if (!profiles) return
-
-  for (const profile of profiles) {
-    // Reset hearts to daily maximum (default: 5)
-    const maxHearts = profile.daily_goal_hearts || 5
-
-    const { error: updateError } = await supabase
+  try {
+    // Get user preferences for heart settings
+    const { data: profiles, error: fetchError } = await supabase
       .from('profiles')
-      .update({ hearts: maxHearts })
-      .eq('id', profile.id)
+      .select('id, daily_goal_hearts, hearts, max_hearts')
 
-    if (updateError) {
-      console.error(`Error resetting hearts for user ${profile.id}:`, updateError)
+    if (fetchError) {
+      console.error('Error fetching profiles for heart reset:', fetchError)
+      return
     }
-  }
 
-  console.log('Daily hearts reset completed')
+    if (!profiles || profiles.length === 0) {
+      console.log('No profiles found for heart reset')
+      return
+    }
+
+    // Process hearts reset in batches
+    const batchSize = 50
+    for (let i = 0; i < profiles.length; i += batchSize) {
+      const batch = profiles.slice(i, i + batchSize)
+
+      await Promise.all(batch.map(async (profile) => {
+        // Reset hearts to daily maximum (default: 5)
+        const maxHearts = profile.max_hearts || profile.daily_goal_hearts || 5
+
+        try {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              hearts: maxHearts,
+              last_heart_reset: new Date().toISOString().split('T')[0]
+            })
+            .eq('id', profile.id)
+
+          if (updateError) {
+            console.error(`Error resetting hearts for user ${profile.id}:`, updateError)
+          }
+        } catch (error) {
+          console.error(`Unexpected error resetting hearts for user ${profile.id}:`, error)
+        }
+      }))
+    }
+
+    console.log(`Daily hearts reset completed for ${profiles.length} users`)
+  } catch (error) {
+    console.error('Error in resetDailyHearts:', error)
+  }
 }
 
 async function checkStreakMilestones(userId: string, streak: number) {
@@ -284,13 +323,34 @@ async function awardStreakAchievements(userId: string, streak: number) {
   const xpReward = xpRewards[streak as keyof typeof xpRewards]
 
   if (xpReward) {
-    const { error: xpError } = await supabase.rpc('award_achievement_xp', {
-      p_user_id: userId,
-      p_xp_amount: xpReward
-    })
+    try {
+      const { error: xpError } = await supabase.rpc('award_achievement_xp', {
+        p_user_id: userId,
+        p_achievement_id: null, // Allow null achievement_id
+        p_xp_amount: xpReward
+      })
 
-    if (xpError) {
-      console.error(`Error awarding streak XP for user ${userId}:`, xpError)
+      if (xpError) {
+        console.error(`Error awarding streak XP for user ${userId}:`, xpError)
+        // Fallback: Direct XP update if RPC fails
+        try {
+          const { error: fallbackError } = await supabase
+            .from('profiles')
+            .update({
+              total_xp: supabase.raw(`total_xp + ${xpReward}`),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+
+          if (fallbackError) {
+            console.error(`Fallback XP update failed for user ${userId}:`, fallbackError)
+          }
+        } catch (fallbackError) {
+          console.error(`Unexpected fallback error for user ${userId}:`, fallbackError)
+        }
+      }
+    } catch (error) {
+      console.error(`Unexpected error awarding XP for user ${userId}:`, error)
     }
   }
 }
@@ -311,6 +371,3 @@ async function updateWeeklyLeaderboards() {
     console.error('Error updating weekly leaderboards:', updateError)
   }
 }
-
-// Health check endpoint
-Deno.serve(handleStreakMaintenance, { port: 8080 })

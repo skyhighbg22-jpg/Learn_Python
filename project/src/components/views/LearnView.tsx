@@ -11,51 +11,63 @@ export const LearnView = () => {
   const [progress, setProgress] = useState<Record<string, any>>({});
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadContent();
   }, []);
 
   const loadContent = async () => {
-    const { data: sectionsData } = await supabase
-      .from('sections')
-      .select('*')
-      .order('order_index');
+    try {
+      setError(null);
+      setLoading(true);
 
-    if (sectionsData) {
-      setSections(sectionsData);
+      // Single query to get sections with lessons (optimizes N+1 query problem)
+      const { data: sectionsWithLessons, error: sectionsError } = await supabase
+        .from('sections')
+        .select(`
+          *,
+          lessons (*)
+        `)
+        .order('order_index');
 
-      const lessonsMap: Record<string, Lesson[]> = {};
-      for (const section of sectionsData) {
-        const { data: lessonsData } = await supabase
-          .from('lessons')
-          .select('*')
-          .eq('section_id', section.id)
-          .order('order_index');
+      if (sectionsError) throw sectionsError;
 
-        if (lessonsData) {
-          lessonsMap[section.id] = lessonsData;
+      // Process and set data
+      if (sectionsWithLessons) {
+        setSections(sectionsWithLessons);
+
+        // Process lessons into map
+        const lessonsMap: Record<string, Lesson[]> = {};
+        sectionsWithLessons.forEach(section => {
+          lessonsMap[section.id] = section.lessons || [];
+        });
+        setLessons(lessonsMap);
+
+        // Load progress if user is logged in
+        if (profile?.id) {
+          const { data: progressData, error: progressError } = await supabase
+            .from('user_lesson_progress')
+            .select('*')
+            .eq('user_id', profile.id);
+
+          if (progressError) throw progressError;
+
+          if (progressData) {
+            const progressMap = progressData.reduce((acc, p) => {
+              acc[p.lesson_id] = p;
+              return acc;
+            }, {} as Record<string, any>);
+            setProgress(progressMap);
+          }
         }
       }
-      setLessons(lessonsMap);
-
-      if (profile) {
-        const { data: progressData } = await supabase
-          .from('user_lesson_progress')
-          .select('*')
-          .eq('user_id', profile.id);
-
-        if (progressData) {
-          const progressMap = progressData.reduce((acc, p) => {
-            acc[p.lesson_id] = p;
-            return acc;
-          }, {} as Record<string, any>);
-          setProgress(progressMap);
-        }
-      }
+    } catch (error) {
+      console.error('Failed to load content:', error);
+      setError('Failed to load lessons. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const isLessonUnlocked = (lesson: Lesson, section: Section) => {
@@ -90,6 +102,31 @@ export const LearnView = () => {
         <div className="flex flex-col items-center gap-4 animate-in animate-fade-in">
           <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
           <div className="text-slate-400">Loading amazing lessons...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-6 animate-in animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-red-500 bg-opacity-20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <div className="text-center">
+          <p className="text-red-400 text-lg font-medium mb-2">Unable to load lessons</p>
+          <p className="text-slate-400 text-sm mb-4">{error}</p>
+          <button
+            onClick={loadContent}
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Try Again
+          </button>
         </div>
       </div>
     );

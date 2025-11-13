@@ -5,7 +5,8 @@ import {
 } from 'lucide-react';
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications, createNotificationTypes } from '../../contexts/NotificationContext';
+// Import with fallback for missing NotificationContext
+import { useNotifications } from '../../contexts/NotificationContext';
 
 interface ChallengeCompletion {
   id: string;
@@ -32,7 +33,17 @@ interface LeaderboardEntry {
 
 export const ChallengesView = () => {
   const { profile } = useAuth();
-  const { addNotification } = useNotifications();
+  // Graceful fallback for NotificationContext
+  let addNotification: (notification: any) => void;
+  try {
+    const notificationContext = useNotifications();
+    addNotification = notificationContext.addNotification;
+  } catch (error) {
+    // Fallback if NotificationContext doesn't exist
+    addNotification = (notification) => {
+      console.log('Notification:', notification);
+    };
+  }
   const [todayChallenge, setTodayChallenge] = useState<DailyChallenge | null>(null);
   const [completed, setCompleted] = useState(false);
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
@@ -42,25 +53,38 @@ export const ChallengesView = () => {
   const [selectedTab, setSelectedTab] = useState<'today' | 'history' | 'leaderboard'>('today');
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isStarting, setIsStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Load today's challenge
   const loadTodayChallenge = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
+      setError(null);
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
       const today = new Date().toISOString().split('T')[0];
 
-      const { data: challengeData } = await supabase
+      const dataPromise = supabase
         .from('daily_challenges')
         .select('*')
         .eq('date', today)
         .maybeSingle();
 
-      if (challengeData) {
-        setTodayChallenge(challengeData);
+      const { data: challengeData, error: challengeError } = await Promise.race([dataPromise, timeoutPromise]) as any;
 
+      if (challengeError) throw challengeError;
+
+      setTodayChallenge(challengeData);
+
+      if (challengeData) {
         // Check completion status
-        const { data: completionData } = await supabase
+        const completionPromise = supabase
           .from('daily_challenge_attempts')
           .select('*')
           .eq('user_id', profile.id)
@@ -70,13 +94,23 @@ export const ChallengesView = () => {
           .limit(1)
           .maybeSingle();
 
+        const { data: completionData, error: completionError } = await Promise.race([completionPromise, timeoutPromise]) as any;
+
+        if (completionError) throw completionError;
+
         setCompletionData(completionData);
         setCompleted(!!completionData);
       }
 
-      setLoading(false);
-    } catch (error) {
+      setRetryCount(0);
+    } catch (error: any) {
       console.error('Error loading today\'s challenge:', error);
+      setError(error.message === 'Request timeout'
+        ? 'Connection timeout. Please check your internet connection.'
+        : 'Failed to load challenge. Please try again.'
+      );
+      setRetryCount(prev => prev + 1);
+    } finally {
       setLoading(false);
     }
   }, [profile?.id]);
@@ -175,7 +209,12 @@ export const ChallengesView = () => {
       if (error) throw error;
 
       // Navigate to challenge (this would integrate with your routing)
-      addNotification(createNotificationTypes.dailyChallengeCompleted(todayChallenge.title, 0));
+      addNotification({
+        type: 'success',
+        title: 'Challenge Started',
+        message: todayChallenge.title,
+        duration: 3000
+      });
 
     } catch (error) {
       console.error('Error starting challenge:', error);
@@ -241,10 +280,42 @@ export const ChallengesView = () => {
 
   const { completedCount, totalXP, bestStreak } = calculateStats();
 
+  if (error && retryCount > 2) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <div className="w-16 h-16 rounded-full bg-red-500 bg-opacity-20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <div className="text-center">
+          <p className="text-red-400 text-lg font-medium mb-2">Unable to load challenges</p>
+          <p className="text-slate-400 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setRetryCount(0);
+              loadTodayChallenge();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="text-slate-400">Loading challenges...</div>
+        </div>
       </div>
     );
   }

@@ -43,13 +43,14 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         }, 1500);
       }
     } else if (currentContent.type === 'code') {
-      const isCorrect = userCode.trim().length > 0;
+      // Check if user has written meaningful code
+      const hasMeaningfulCode = userCode.trim().length > 5 && !userCode.trim().startsWith('#');
       setFeedback({
-        correct: isCorrect,
-        message: isCorrect ? 'Great coding! 💻' : 'Please write some code',
+        correct: hasMeaningfulCode,
+        message: hasMeaningfulCode ? 'Great coding! 💻 Your solution looks good!' : 'Please write some meaningful code',
       });
 
-      if (isCorrect) {
+      if (hasMeaningfulCode) {
         setTimeout(() => {
           handleNext();
         }, 1500);
@@ -355,8 +356,14 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
               <CodeEditor
                 value={userCode}
                 onChange={setUserCode}
-                initialCode={currentContent.code || '# Write your code here\n'}
+                initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
               />
+              {currentContent.solution && (
+                <div className="mt-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
+                  <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
+                  <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
+                </div>
+              )}
             </div>
           )}
 
