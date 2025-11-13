@@ -37,8 +37,14 @@ export type Lesson = {
     options?: string[];
     correctAnswer?: string;
     code?: string;
+    starterCode?: string;
+    solution?: string;
   }[];
+  lesson_type?: 'multiple-choice' | 'code' | 'drag-drop' | 'puzzle' | 'story';
   estimated_minutes: number;
+  drag_drop_data?: any;
+  game_data?: any;
+  story_data?: any;
 };
 
 export type Section = {
