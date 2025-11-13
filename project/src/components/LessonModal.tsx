@@ -43,10 +43,11 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         }, 1500);
       }
     } else if (currentContent.type === 'code') {
-      const isCorrect = userCode.trim().length > 0;
+      // Check if user has written meaningful code
+      const hasMeaningfulCode = userCode.trim().length > 5 && !userCode.trim().startsWith('#');
       setFeedback({
-        correct: isCorrect,
-        message: isCorrect ? 'Great coding! 💻' : 'Please write some code',
+        correct: hasMeaningfulCode,
+        message: hasMeaningfulCode ? 'Great coding! 💻 Your solution looks good!' : 'Please write some meaningful code',
       });
 
       if (isCorrect) {
