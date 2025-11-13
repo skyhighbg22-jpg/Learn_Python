@@ -83,7 +83,7 @@ INSERT INTO lessons (id, title, description, difficulty, xp_reward, order_index,
 'code', 15),
 
 ('20000000-0000-0000-0000-000000000008', 'Type Checking', 'Determining variable types', 'beginner', 12, 8, '00000000-0000-0000-0000-000000000002',
-'[{"type": "text", "content": "type() returns variable type. Useful for debugging and understanding data."}, {"type": "code", "question": "Check types of different variables', "starterCode": "text = \"Hello\"\nnumber = 42\nprint(type(text))\nprint(type(number))", "solution": "text = \"Hello\"\nnumber = 42\nprint(type(text))\nprint(type(number))"}]',
+'[{"type": "text", "content": "type() returns variable type. Useful for debugging and understanding data."}, {"type": "code", "question": "Check types of different variables", "starterCode": "text = \"Hello\"\nnumber = 42\nprint(type(text))\nprint(type(number))", "solution": "text = \"Hello\"\nnumber = 42\nprint(type(text))\nprint(type(number))"}]',
 'code', 10),
 
 -- CONTROL FLOW SECTION (8 lessons)
