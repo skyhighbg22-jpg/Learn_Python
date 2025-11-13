@@ -79,7 +79,7 @@ INSERT INTO lessons (id, title, description, difficulty, xp_reward, order_index,
 'multiple-choice', 10),
 
 ('20000000-0000-0000-0000-000000000007', 'User Input', 'Getting input from users', 'beginner', 16, 7, '00000000-0000-0000-0000-000000000002',
-'[{"type": "text", "content": "input() gets user input. Always returns string. Convert to other types as needed."}, {"type": "code", "question": "Ask for age and calculate birth year', "starterCode": "age = int(input(\"Enter age: \"))\ncurrent_year = 2024\nbirth_year = current_year - age\nprint(birth_year)", "solution": "age = int(input(\"Enter age: \"))\ncurrent_year = 2024\nbirth_year = current_year - age\nprint(birth_year)"}]',
+'[{"type": "text", "content": "input() gets user input. Always returns string. Convert to other types as needed."}, {"type": "code", "question": "Ask for age and calculate birth year", "starterCode": "age = int(input(\"Enter age: \"))\ncurrent_year = 2024\nbirth_year = current_year - age\nprint(birth_year)", "solution": "age = int(input(\"Enter age: \"))\ncurrent_year = 2024\nbirth_year = current_year - age\nprint(birth_year)"}]',
 'code', 15),
 
 ('20000000-0000-0000-0000-000000000008', 'Type Checking', 'Determining variable types', 'beginner', 12, 8, '00000000-0000-0000-0000-000000000002',
