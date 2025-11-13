@@ -20,11 +20,19 @@ Follow these steps to get the comprehensive lesson content appearing on your fro
 
 ### Step 2: Database Setup 🗄️
 
+**IMPORTANT: Use the simple script to ensure lessons appear!**
+
 1. **Go to your Supabase Dashboard** → SQL Editor
-2. **Run the complete database schema:**
-   - Copy the entire contents of `database_schema.sql`
+2. **Run the immediate lesson insertion script:**
+   - Copy the entire contents of `ADD_LESSONS_NOW.sql`
    - Paste it into the SQL Editor
    - Click "Run" to execute all queries
+
+3. **Verify lessons were added:**
+   - Run the diagnostic script: `CHECK_DATA.sql`
+   - You should see lesson counts and lesson data
+
+❗ **If lessons still don't appear, run `ADD_LESSONS_NOW.sql` again - it clears old data and inserts fresh lessons.**
 
 ### Step 3: Edge Functions Setup (Optional) ⚡
 
