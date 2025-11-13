@@ -50,7 +50,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         message: hasMeaningfulCode ? 'Great coding! 💻 Your solution looks good!' : 'Please write some meaningful code',
       });
 
-      if (isCorrect) {
+      if (hasMeaningfulCode) {
         setTimeout(() => {
           handleNext();
         }, 1500);
