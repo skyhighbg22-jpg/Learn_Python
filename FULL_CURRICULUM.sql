@@ -71,7 +71,7 @@ INSERT INTO lessons (id, title, description, difficulty, xp_reward, order_index,
 'code', 12),
 
 ('20000000-0000-0000-0000-000000000005', 'Numbers and Math', 'Working with integers and floats', 'beginner', 18, 5, '00000000-0000-0000-0000-000000000002',
-'[{"type": "text", "content": "Math operations: +, -, *, /, //, %, **. Math module has pi, sqrt, etc."}, {"type": "code", "question": "Calculate circle area with radius 5', "starterCode": "import math\nradius = 5\narea = math.pi * radius ** 2\nprint(area)", "solution": "import math\nradius = 5\narea = math.pi * radius ** 2\nprint(area)"}]',
+'[{"type": "text", "content": "Math operations: +, -, *, /, //, %, **. Math module has pi, sqrt, etc."}, {"type": "code", "question": "Calculate circle area with radius 5", "starterCode": "import math\nradius = 5\narea = math.pi * radius ** 2\nprint(area)", "solution": "import math\nradius = 5\narea = math.pi * radius ** 2\nprint(area)"}]',
 'code', 18),
 
 ('20000000-0000-0000-0000-000000000006', 'Boolean Logic', 'Understanding True, False, logical ops', 'beginner', 14, 6, '00000000-0000-0000-0000-000000000002',
