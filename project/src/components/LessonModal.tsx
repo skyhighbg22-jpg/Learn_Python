@@ -355,8 +355,14 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
               <CodeEditor
                 value={userCode}
                 onChange={setUserCode}
-                initialCode={currentContent.code || '# Write your code here\n'}
+                initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
               />
+              {currentContent.solution && (
+                <div className="mt-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
+                  <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
+                  <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
+                </div>
+              )}
             </div>
           )}
 
