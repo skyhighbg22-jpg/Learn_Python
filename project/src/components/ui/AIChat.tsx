@@ -208,13 +208,23 @@ export const AIChat: React.FC<AIChatProps> = ({
           <div>
             <h3 className="text-white font-semibold flex items-center gap-2">
               Sky AI Assistant
-              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
-                Online
+              <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                connectionStatus === 'connected'
+                  ? 'bg-green-500/20 text-green-400'
+                  : connectionStatus === 'connecting'
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'bg-red-500/20 text-red-400'
+              }`}>
+                {connectionStatus === 'connected' && <CheckCircle size={10} />}
+                {connectionStatus === 'connecting' && <RefreshCw size={10} className="animate-spin" />}
+                {connectionStatus === 'error' && <AlertCircle size={10} />}
+                {connectionStatus === 'connected' ? 'Online' : connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
               </span>
             </h3>
             {providerInfo && (
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-400 flex items-center gap-1">
                 Powered by {providerInfo.provider}
+                {providerInfo.model !== 'unknown' && <span>• {providerInfo.model}</span>}
               </div>
             )}
           </div>
