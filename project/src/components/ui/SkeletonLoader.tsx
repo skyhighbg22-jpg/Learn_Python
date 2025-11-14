@@ -1,0 +1,85 @@
+import React from 'react';
+
+interface SkeletonProps {
+  className?: string;
+  height?: string;
+  width?: string;
+  variant?: 'text' | 'circular' | 'rectangular';
+  animated?: boolean;
+}
+
+export const Skeleton = ({
+  className = '',
+  height = 'h-4',
+  width = 'w-full',
+  variant = 'rectangular',
+  animated = true
+}: SkeletonProps) => {
+  const baseClasses = 'bg-slate-700 rounded';
+  const animationClass = animated ? 'animate-pulse' : '';
+  const variantClasses = {
+    text: 'h-4 w-3/4',
+    circular: 'h-12 w-12 rounded-full',
+    rectangular: `${height} ${width}`
+  };
+
+  return (
+    <div
+      className={`${baseClasses} ${variantClasses[variant]} ${animationClass} ${className}`}
+    />
+  );
+};
+
+// Skeleton Card for lesson cards
+export const SkeletonCard = () => {
+  return (
+    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+      <div className="flex items-start gap-4 mb-4">
+        <Skeleton variant="circular" className="flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton width="w-3/4" className="h-6" />
+          <Skeleton width="w-1/2" className="h-4" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Skeleton width="w-full" className="h-4" />
+        <Skeleton width="w-5/6" className="h-4" />
+        <Skeleton width="w-4/5" className="h-4" />
+      </div>
+    </div>
+  );
+};
+
+// Skeleton for stats
+export const SkeletonStats = () => {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+          <div className="space-y-3">
+            <Skeleton variant="circular" width="w-8 h-8" />
+            <Skeleton width="w-3/4" className="h-6" />
+            <Skeleton width="w-1/2" className="h-3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Skeleton for table/list items
+export const SkeletonListItem = () => {
+  return (
+    <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-lg border border-slate-700">
+      <Skeleton variant="circular" className="flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton width="w-2/3" className="h-4" />
+        <Skeleton width="w-1/2" className="h-3" />
+      </div>
+      <div className="text-right space-y-2">
+        <Skeleton width="w-20" className="h-4" />
+        <Skeleton width="w-16" className="h-3" />
+      </div>
+    </div>
+  );
+};
