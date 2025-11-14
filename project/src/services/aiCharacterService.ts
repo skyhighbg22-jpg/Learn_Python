@@ -156,7 +156,7 @@ What would you like to store in a variable? 😊`;
       if (lowerMessage.includes('print')) {
         return `The print() function is your best friend for seeing what's happening! 🖨️
 
-It's like shouting your results to the world: `print("Hello World!")` shows "Hello World!" on screen.
+It's like shouting your results to the world: \`print("Hello World!")\` shows "Hello World!" on screen.
 
 Try printing your name - I bet it'll look great! ✨`;
       }
