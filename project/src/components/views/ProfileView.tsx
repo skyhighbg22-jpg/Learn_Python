@@ -21,6 +21,10 @@ export const ProfileView = () => {
   const [showSocialShare, setShowSocialShare] = useState(false);
   const [userRanking, setUserRanking] = useState<UserRanking | null>(null);
   const [leagueUsers, setLeagueUsers] = useState<UserRanking[]>([]);
+  const [specialRewards, setSpecialRewards] = useState<any[]>([]);
+  const [unviewedCelebrations, setUnviewedCelebrations] = useState<any[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationAchievement, setCelebrationAchievement] = useState<any>(null);
 
   // Handle auth loading state
   if (authLoading) {
