@@ -14,6 +14,8 @@ export const LearnView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
+  const [dailyGoal, setDailyGoal] = useState<any>(null);
 
   useEffect(() => {
     loadContent();
