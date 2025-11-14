@@ -414,63 +414,112 @@ if __name__ == '__main__':
         </div>
       </div>
 
-      {/* Side Panel for Hints and Tips */}
-      {showTips && skyTips.length > 0 && (
+      {/* Enhanced Side Panel with Tabs */}
+      {(showTips || showCodeQuality) && (
         <div className="w-80 bg-slate-800 border-l border-slate-600 flex flex-col">
-          {/* Sky's Tips Section */}
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-semibold flex items-center gap-2">
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-xs">🌟</span>
-                </div>
-                Sky's Tips
-              </h3>
+          {/* Tab Navigation */}
+          <div className="flex border-b border-slate-700">
+            {showTips && skyTips.length > 0 && (
               <button
-                onClick={() => setShowSkyTips(!showSkyTips)}
-                className="text-slate-400 hover:text-white transition-colors"
+                onClick={() => setActiveTab('tips')}
+                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === 'tips'
+                    ? 'bg-slate-700 text-blue-400 border-b-2 border-blue-400'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
               >
-                <X size={16} />
+                <Lightbulb size={16} />
+                Tips
               </button>
-            </div>
+            )}
 
-            {showSkyTips && (
-              <div className="space-y-2">
-                {skyTips.map((tip, index) => (
-                  <div
-                    key={index}
-                    className="p-3 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg animate-slide-up"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs text-white font-bold">{index + 1}</span>
-                      </div>
-                      <p className="text-slate-100 text-sm leading-relaxed">{tip}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {showCodeQuality && (
+              <button
+                onClick={() => setActiveTab('quality')}
+                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === 'quality'
+                    ? 'bg-slate-700 text-green-400 border-b-2 border-green-400'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <Shield size={16} />
+                Quality
+              </button>
             )}
           </div>
 
-          {/* Additional Help Section */}
-          <div className="p-4 flex-1">
-            <div className="bg-slate-700 rounded-lg p-3">
-              <h4 className="text-white font-medium mb-2">Quick Help</h4>
-              <div className="space-y-2 text-slate-300 text-sm">
-                <div>• Use <code className="bg-slate-600 px-1 rounded">print()</code> to show output</div>
-                <div>• Check syntax for missing colons <code className="bg-slate-600 px-1 rounded">:</code></div>
-                <div>• Ensure proper indentation (4 spaces)</div>
-                <div>• Strings need quotes: <code className="bg-slate-600 px-1 rounded">"text"</code></div>
-              </div>
-            </div>
+          {/* Tab Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'tips' && showTips && skyTips.length > 0 && (
+              <div className="h-full flex flex-col">
+                {/* Sky's Tips Section */}
+                <div className="p-4 border-b border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-white font-semibold flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-xs">🌟</span>
+                      </div>
+                      Sky's Tips
+                    </h3>
+                    <button
+                      onClick={() => setShowSkyTips(!showSkyTips)}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
 
-            <div className="mt-3 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg p-3">
-              <p className="text-slate-100 text-sm leading-relaxed">
-                <span className="font-semibold">💡 Pro Tip:</span> Try to solve without hints first for maximum XP! Hints are here to help you learn, not to give away the answer.
-              </p>
-            </div>
+                  {showSkyTips && (
+                    <div className="space-y-2">
+                      {skyTips.map((tip, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg animate-slide-up"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs text-white font-bold">{index + 1}</span>
+                            </div>
+                            <p className="text-slate-100 text-sm leading-relaxed">{tip}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Help Section */}
+                <div className="p-4 flex-1">
+                  <div className="bg-slate-700 rounded-lg p-3">
+                    <h4 className="text-white font-medium mb-2">Quick Help</h4>
+                    <div className="space-y-2 text-slate-300 text-sm">
+                      <div>• Use <code className="bg-slate-600 px-1 rounded">print()</code> to show output</div>
+                      <div>• Check syntax for missing colons <code className="bg-slate-600 px-1 rounded">:</code></div>
+                      <div>• Ensure proper indentation (4 spaces)</div>
+                      <div>• Strings need quotes: <code className="bg-slate-600 px-1 rounded">"text"</code></div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg p-3">
+                    <p className="text-slate-100 text-sm leading-relaxed">
+                      <span className="font-semibold">💡 Pro Tip:</span> Try to solve without hints first for maximum XP! Hints are here to help you learn, not to give away the answer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'quality' && showCodeQuality && (
+              <div className="p-4 h-full overflow-y-auto">
+                <CodeQualityPanel
+                  code={currentCode}
+                  language={language}
+                  lessonContext={lessonContext}
+                  onAutoFix={handleAutoFix}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
