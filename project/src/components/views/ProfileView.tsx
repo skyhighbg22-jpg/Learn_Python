@@ -212,6 +212,31 @@ export const ProfileView = () => {
     ? achievementProgress
     : achievementProgress.filter(a => a.achievement.category === selectedCategory);
 
+  const handleShareAchievement = async (achievement: any, platform: string) => {
+    try {
+      // TODO: Use AchievementService.shareAchievement
+      console.log('Sharing achievement on', platform);
+    } catch (error) {
+      console.error('Error sharing achievement:', error);
+    }
+  };
+
+  const handleViewCelebration = () => {
+    if (unviewedCelebrations.length > 0) {
+      setCelebrationAchievement(unviewedCelebrations[0]);
+      setShowCelebration(true);
+    }
+  };
+
+  const handleMarkCelebrationViewed = async (achievementId: string) => {
+    try {
+      // TODO: Use AchievementService.markCelebrationViewed
+      setUnviewedCelebrations(prev => prev.filter(a => a.id !== achievementId));
+    } catch (error) {
+      console.error('Error marking celebration viewed:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-8">
