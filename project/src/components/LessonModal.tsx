@@ -23,6 +23,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   const [isCompleting, setIsCompleting] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [startTime] = useState(Date.now());
+  const [revealedHints, setRevealedHints] = useState<number[]>([]);
 
   const currentContent = lesson.content[currentStep];
   const isLastStep = currentStep === lesson.content.length - 1;
