@@ -4,13 +4,66 @@ import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3
 import AchievementService, { AchievementProgress } from '../../services/achievementService';
 
 export const ProfileView = () => {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading, refreshProfile } = useAuth();
   const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
   const [achievementStats, setAchievementStats] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  if (!profile) return null;
+  // Handle auth loading state
+  if (authLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-slate-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle missing profile with error state and retry
+  if (!profile) {
+    return (
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="flex flex-col items-center justify-center h-64 bg-slate-800 rounded-2xl p-8">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Profile Unavailable</h2>
+          <p className="text-slate-400 mb-6 text-center max-w-md">
+            We couldn't load your profile data. This might be due to a connection issue or temporary server problem.
+          </p>
+          <button
+            onClick={async () => {
+              setRefreshing(true);
+              try {
+                await refreshProfile();
+              } catch (error) {
+                console.error('Failed to refresh profile:', error);
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            disabled={refreshing}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            {refreshing ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Refreshing...
+              </>
+            ) : (
+              'Try Again'
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Load achievement data
   useEffect(() => {
