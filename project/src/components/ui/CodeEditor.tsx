@@ -177,18 +177,8 @@ export const CodeEditor = ({
       const pythonCode = editorInstanceRef.current?.getValue() || '';
 
       // Use Pyodide to execute Python
-      const pyodide = await import('pyodide').then(module => {
-        return new module.default({
-          stdout: (output) => {
-            setCurrentOutput(output);
-            setIsRunning(false);
-          },
-          stderr: (output) => {
-            setCurrentOutput(`Error: ${output}`);
-            setIsRunning(false);
-          },
-        });
-      });
+      const { PyodideRunner } = await import('../utils/pyodide');
+      const pyodide = new PyodideRunner();
 
       // Check if the code uses print() function
       const hasPrintStatement = /print\s*\(/.test(pythonCode);
