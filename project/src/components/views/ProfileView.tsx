@@ -72,28 +72,34 @@ export const ProfileView = () => {
     );
   }
 
-  // Load achievement data
+  // Load profile data
   useEffect(() => {
-    const loadAchievementData = async () => {
+    const loadProfileData = async () => {
       if (!profile?.id) return;
 
       try {
         setLoading(true);
-        const [progress, stats] = await Promise.all([
+        const [progress, stats, skillData, pathData, analytics] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
-          AchievementService.getAchievementStats(profile.id)
+          AchievementService.getAchievementStats(profile.id),
+          profileAnalyticsService.calculateSkillProgress(profile.id),
+          profileAnalyticsService.calculateLearningPaths(profile.id),
+          profileAnalyticsService.calculateProfileStats(profile.id)
         ]);
 
         setAchievementProgress(progress);
         setAchievementStats(stats);
+        setSkills(skillData);
+        setLearningPaths(pathData);
+        setProfileStats(analytics);
       } catch (error) {
-        console.error('Error loading achievement data:', error);
+        console.error('Error loading profile data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadAchievementData();
+    loadProfileData();
   }, [profile?.id]);
 
   const stats = [
