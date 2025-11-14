@@ -32,18 +32,82 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Create fallback profile when fetch fails
+        const fallbackProfile: Profile = {
+          id: userId,
+          username: `user_${userId.slice(0, 8)}`,
+          display_name: 'New Learner',
+          avatar_character: 'sky',
+          current_streak: 0,
+          longest_streak: 0,
+          total_xp: 0,
+          current_level: 1,
+          hearts: 5,
+          last_heart_reset: new Date().toISOString(),
+          league: 'bronze',
+          learning_path: null,
+          daily_goal_minutes: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setProfile(fallbackProfile);
+        return;
+      }
+
+      // If profile doesn't exist yet, create fallback profile
+      if (!data) {
+        const fallbackProfile: Profile = {
+          id: userId,
+          username: `user_${userId.slice(0, 8)}`,
+          display_name: 'New Learner',
+          avatar_character: 'sky',
+          current_streak: 0,
+          longest_streak: 0,
+          total_xp: 0,
+          current_level: 1,
+          hearts: 5,
+          last_heart_reset: new Date().toISOString(),
+          league: 'bronze',
+          learning_path: null,
+          daily_goal_minutes: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setProfile(fallbackProfile);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Unexpected error in fetchProfile:', error);
+      // Create fallback profile for any unexpected errors
+      const fallbackProfile: Profile = {
+        id: userId,
+        username: `user_${userId.slice(0, 8)}`,
+        display_name: 'New Learner',
+        avatar_character: 'sky',
+        current_streak: 0,
+        longest_streak: 0,
+        total_xp: 0,
+        current_level: 1,
+        hearts: 5,
+        last_heart_reset: new Date().toISOString(),
+        league: 'bronze',
+        learning_path: null,
+        daily_goal_minutes: 30,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      setProfile(fallbackProfile);
     }
-
-    setProfile(data);
   };
 
   useEffect(() => {
