@@ -148,7 +148,7 @@ Keep that momentum going - you're on fire! 🔥✨`;
       if (lowerMessage.includes('variable')) {
         return `Variables are like containers for your data! Think of them as labeled boxes where you store information. 📦
 
-For example: `name = "Sky"` creates a box called "name" and puts "Sky" inside it!
+For example: \`name = "Sky"\` creates a box called "name" and puts "Sky" inside it!
 
 What would you like to store in a variable? 😊`;
       }
