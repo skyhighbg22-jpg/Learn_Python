@@ -80,6 +80,22 @@ export const LearnView = () => {
     }
   };
 
+  const loadLearningPaths = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const [paths, goal] = await Promise.all([
+        learningPathService.calculateLearningPaths(profile.id),
+        learningPathService.getDailyGoalRecommendation(profile.id)
+      ]);
+
+      setLearningPaths(paths);
+      setDailyGoal(goal);
+    } catch (error) {
+      console.error('Failed to load learning paths:', error);
+    }
+  };
+
   const isLessonUnlocked = (lesson: Lesson, section: Section) => {
     if (!profile) return false;
     return profile.total_xp >= section.unlock_requirement_xp;
