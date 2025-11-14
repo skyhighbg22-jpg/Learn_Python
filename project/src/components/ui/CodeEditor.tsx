@@ -178,6 +178,14 @@ export const CodeEditor = ({
 
   }, [value, language, theme, height, readOnly, showLineNumbers, fontSize, expectedOutput]);
 
+  // Track code changes for quality analysis
+  useEffect(() => {
+    if (editorInstanceRef.current) {
+      const code = editorInstanceRef.current.getValue();
+      setCurrentCode(code);
+    }
+  }, [value]);
+
   // Execute Python code
   const executeCode = async () => {
     if (!onRun || isRunning) return;
