@@ -10,6 +10,7 @@ export type Profile = {
   username: string;
   display_name: string;
   avatar_character: string;
+  avatar_url?: string;
   current_streak: number;
   longest_streak: number;
   total_xp: number;
