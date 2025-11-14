@@ -13,6 +13,10 @@ export const ProfileView = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [skills, setSkills] = useState<SkillData[]>([]);
+  const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
+  const [profileStats, setProfileStats] = useState<any>(null);
+  const [showSocialShare, setShowSocialShare] = useState(false);
 
   // Handle auth loading state
   if (authLoading) {
