@@ -72,6 +72,8 @@ export const AIChat: React.FC<AIChatProps> = ({
     setIsLoading(true);
 
     try {
+      setConnectionStatus('connecting');
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
         method: 'POST',
         headers: {
