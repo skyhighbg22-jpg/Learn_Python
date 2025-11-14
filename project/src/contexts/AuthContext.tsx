@@ -230,6 +230,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         username,
         full_name: fullName || username,
         display_name: fullName || username,
+        avatar_character: 'sky', // Default avatar character for OAuth users
         avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         email_confirmed: true, // OAuth emails are pre-verified
         signup_method: 'google',
