@@ -199,6 +199,24 @@ export const AIChat: React.FC<AIChatProps> = ({
 
   return (
     <div className={`flex flex-col h-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden ${className}`}>
+      {/* Connection Error Banner */}
+      {showConnectionError && connectionStatus === 'error' && (
+        <div className="bg-red-500/10 border-b border-red-500/30 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-red-400 text-sm">
+              <AlertCircle size={16} />
+              <span>Connection issues detected. Check API configuration or try again.</span>
+            </div>
+            <button
+              onClick={() => setShowConnectionError(false)}
+              className="text-red-400 hover:text-red-300 transition-colors"
+            >
+              <CheckCircle size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-700">
         <div className="flex items-center gap-3">
