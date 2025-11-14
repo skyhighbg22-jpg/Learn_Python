@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3 } from 'lucide-react';
+import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3, Calendar, Activity, Share2, BarChart3 } from 'lucide-react';
 import AchievementService, { AchievementProgress } from '../../services/achievementService';
 import { ProfilePictureUpload } from '../ui/ProfilePictureUpload';
+import { SkillProgress } from '../ui/SkillProgress';
+import { profileAnalyticsService, SkillData, LearningPathData } from '../../services/profileAnalyticsService';
 
 export const ProfileView = () => {
   const { profile, loading: authLoading, refreshProfile, updateProfileAvatar } = useAuth();
