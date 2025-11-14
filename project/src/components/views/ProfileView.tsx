@@ -370,7 +370,7 @@ export const ProfileView = () => {
       )}
 
       <div className="max-w-6xl mx-auto p-8">
-      <div className="bg-slate-800 rounded-2xl p-8 mb-6">
+        <div className="bg-slate-800 rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-6 mb-6">
           <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full overflow-hidden flex items-center justify-center">
             {profile.avatar_url ? (
