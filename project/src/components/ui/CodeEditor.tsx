@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
-import { Play, RotateCcw, Check, X, AlertCircle, Lightbulb, Monitor } from 'lucide-react';
+import { Play, RotateCcw, Check, X, AlertCircle, Lightbulb, Monitor, Code, Shield } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { CodeQualityPanel } from './CodeQualityPanel';
 
 interface CodeEditorProps {
   value?: string;
