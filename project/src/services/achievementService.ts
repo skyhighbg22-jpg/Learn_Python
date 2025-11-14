@@ -6,15 +6,25 @@ export interface Achievement {
   title: string;
   description: string;
   icon: string;
-  category: 'progress' | 'streak' | 'xp' | 'social' | 'special';
+  category: 'progress' | 'streak' | 'xp' | 'social' | 'special' | 'mastery' | 'legendary';
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   xp_reward: number;
+  points: number; // For leaderboard ranking
+  secret: boolean; // Hidden until unlocked
+  special_rewards: Reward[];
   requirements: {
     type: string;
     value: number;
-    condition?: string;
+    condition?: any;
   };
   created_at: string;
+}
+
+export interface Reward {
+  type: 'avatar' | 'title' | 'badge' | 'theme' | 'feature' | 'sky_personality' | 'celebration' | 'profile_frame';
+  value: string;
+  description: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 export interface UserAchievement {
