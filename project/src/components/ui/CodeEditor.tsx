@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
-import { Play, RotateCcw, Check, X, AlertCircle, Lightbulb, Monitor } from 'lucide-react';
+import { Play, RotateCcw, Check, X, AlertCircle, Lightbulb, Monitor, Code, Shield } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { CodeQualityPanel } from './CodeQualityPanel';
 
 interface CodeEditorProps {
   value?: string;
@@ -15,6 +16,11 @@ interface CodeEditorProps {
   expectedOutput?: string;
   showLineNumbers?: boolean;
   fontSize?: number;
+  skyTips?: string[];
+  onHintUsed?: (hintIndex: number) => void;
+  showTips?: boolean;
+  showCodeQuality?: boolean;
+  lessonContext?: string;
 }
 
 // Default Monaco Python language definition
@@ -57,7 +63,12 @@ export const CodeEditor = ({
   hint,
   expectedOutput,
   showLineNumbers = true,
-  fontSize = 14
+  fontSize = 14,
+  skyTips = [],
+  onHintUsed,
+  showTips = true,
+  showCodeQuality = true,
+  lessonContext
 }: CodeEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -65,6 +76,9 @@ export const CodeEditor = ({
   const [showOutput, setShowOutput] = useState(false);
   const [currentOutput, setCurrentOutput] = useState<string>('');
   const [isValid, setIsValid] = useState(true);
+  const [showSkyTips, setShowSkyTips] = useState(true);
+  const [activeTab, setActiveTab] = useState<'tips' | 'quality'>('tips');
+  const [currentCode, setCurrentCode] = useState(value);
   const { resolvedTheme } = useTheme();
 
   // Initialize Monaco Editor
@@ -164,6 +178,14 @@ export const CodeEditor = ({
 
   }, [value, language, theme, height, readOnly, showLineNumbers, fontSize, expectedOutput]);
 
+  // Track code changes for quality analysis
+  useEffect(() => {
+    if (editorInstanceRef.current) {
+      const code = editorInstanceRef.current.getValue();
+      setCurrentCode(code);
+    }
+  }, [value]);
+
   // Execute Python code
   const executeCode = async () => {
     if (!onRun || isRunning) return;
@@ -225,130 +247,280 @@ if __name__ == '__main__':
   const clearEditor = () => {
     if (editorInstanceRef.current) {
       editorInstanceRef.current.setValue('');
+      setCurrentCode('');
       setIsValid(true);
       resetOutput();
     }
   };
 
+  // Handle auto-fix from code quality panel
+  const handleAutoFix = (fixedCode: string) => {
+    if (editorInstanceRef.current && onChange) {
+      editorInstanceRef.current.setValue(fixedCode);
+      setCurrentCode(fixedCode);
+      onChange(fixedCode);
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 bg-slate-800 border-b border-slate-600">
-        <div className="flex items-center gap-3">
-          <div className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold">
-            Python
-          </div>
-          {hint && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-600 rounded-full text-xs">
-              <Lightbulb size={14} />
-              <span className="text-yellow-100">{hint}</span>
+    <div className="h-full flex bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+      {/* Main Editor Section */}
+      <div className="flex-1 flex flex-col" style={{ width: '70%' }}>
+        {/* Enhanced Header */}
+        <div className="flex items-center justify-between p-3 bg-slate-800 border-b border-slate-600">
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold">
+              Python
             </div>
-          )}
-          {expectedOutput && (
-            <div className="text-xs text-slate-400">
-              Expected: {expectedOutput}
+            {hint && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-600 rounded-full text-xs">
+                <Lightbulb size={14} />
+                <span className="text-yellow-100">{hint}</span>
+              </div>
+            )}
+            {expectedOutput && (
+              <div className="text-xs text-slate-400">
+                Expected: {expectedOutput}
+              </div>
+            )}
+            {isValid && (
+              <div className="flex items-center gap-1 text-green-400 text-xs">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span>Syntax Valid</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onRun && (
+              <button
+                onClick={executeCode}
+                disabled={isRunning || !isValid}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+              >
+                {isRunning ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Running...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={16} />
+                    <span>Run Code</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={clearEditor}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+              title="Clear editor"
+            >
+              <RotateCcw size={14} />
+              <span className="hidden sm:inline">Clear</span>
+            </button>
+
+            <button
+              onClick={() => editorInstanceRef.current?.trigger('editor.action.formatDocument')()}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+              title="Format code"
+            >
+              <Monitor size={14} />
+              <span className="hidden sm:inline">Format</span>
+            </button>
+          </div>
+
+          {!isValid && (
+            <div className="flex items-center gap-2 text-red-400 text-sm absolute right-3 top-16 bg-slate-800 px-2 py-1 rounded border border-red-600">
+              <AlertCircle size={14} />
+              <span>Invalid Python syntax</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {onRun && (
-            <button
-              onClick={executeCode}
-              disabled={isRunning || !isValid}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-            >
-              {isRunning ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white"></div>
-                  <span>Running...</span>
-                </>
-              ) : (
-                <>
-                  <Play size={16} />
-                  <span>Run Code</span>
-                </>
-              )}
-            </button>
-          )}
-
-          <button
-            onClick={clearEditor}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-          >
-            <RotateCcw size={16} />
-            <span>Clear</span>
-          </button>
-
-          <button
-            onClick={() => editorInstanceRef.current?.trigger('editor.action.formatDocument')()}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-          >
-            <Monitor size={16} />
-            <span>Format</span>
-          </button>
-        </div>
-
-        {!isValid && (
-          <div className="flex items-center gap-2 text-red-400 text-sm">
-            <AlertCircle size={16} />
-            <span>Invalid Python syntax</span>
-          </div>
-        )}
-      </div>
-
-      {/* Editor */}
-      <div className="flex-1 flex" style={{ height: height }}>
-        <div
-          ref={editorRef}
-          className="w-full"
-          style={{
-            height: '100%',
-            minHeight: '300px',
-          }}
-        />
-      </div>
-
-      {/* Output Panel */}
-      {showOutput && (
-        <div className="h-48 bg-slate-800 border-t border-slate-600 p-4 overflow-y-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-white font-semibold flex items-center gap-2">
-              Output
-              {isRunning && (
-                <div className="animate-pulse text-green-400">●</div>
-              )}
-            </h3>
-            <button
-              onClick={resetOutput}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
+        {/* Editor */}
+        <div className="flex-1 flex" style={{ height: height }}>
           <div
-            className={`font-mono text-sm p-3 rounded bg-slate-900 border border-slate-700 ${
-              currentOutput.includes('Error:') ? 'text-red-400 border-red-600' : 'text-green-400 border-green-600'
-            }`}
-          >
-            {currentOutput}
-          </div>
+            ref={editorRef}
+            className="w-full"
+            style={{
+              height: '100%',
+              minHeight: '300px',
+            }}
+          />
+        </div>
 
-          {expectedOutput && (
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              {currentOutput.includes(expectedOutput) ? (
-                <div className="flex items-center gap-2 text-green-400">
-                  <Check size={16} />
-                  <span>Test Passed! +15 XP</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-yellow-400">
-                  <AlertCircle size={16} />
-                  <span>Output doesn't match expected result</span>
-                </div>
+        {/* Output Panel - Always visible but minimized when empty */}
+        <div className={`bg-slate-800 border-t border-slate-600 transition-all duration-300 ${
+          showOutput ? 'h-48' : 'h-8'
+        } overflow-hidden`}>
+          <div className="p-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setShowOutput(!showOutput)}
+                className="text-white font-semibold flex items-center gap-2 hover:text-blue-400 transition-colors"
+              >
+                Output
+                {isRunning && (
+                  <div className="animate-pulse text-green-400">●</div>
+                )}
+                <div className={`w-2 h-2 border-l border-b border-slate-400 transform transition-transform ${
+                  showOutput ? '-rotate-45 -translate-y-0.5' : 'rotate-45 translate-y-0.5'
+                }`}></div>
+              </button>
+              {showOutput && (
+                <button
+                  onClick={resetOutput}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
               )}
             </div>
-          )}
+
+            {showOutput && (
+              <div className="mt-3 space-y-3">
+                <div
+                  className={`font-mono text-sm p-3 rounded bg-slate-900 border ${
+                    currentOutput.includes('Error:')
+                      ? 'text-red-400 border-red-600'
+                      : currentOutput.includes('Running...')
+                      ? 'text-blue-400 border-blue-600 animate-pulse'
+                      : 'text-green-400 border-green-600'
+                  }`}
+                >
+                  {currentOutput}
+                </div>
+
+                {expectedOutput && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {currentOutput.includes(expectedOutput) ? (
+                      <div className="flex items-center gap-2 text-green-400 animate-scale-in">
+                        <Check size={16} />
+                        <span>Test Passed! +15 XP</span>
+                      </div>
+                    ) : !currentOutput.includes('Running...') && (
+                      <div className="flex items-center gap-2 text-yellow-400">
+                        <AlertCircle size={16} />
+                        <span>Output doesn't match expected result</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Side Panel with Tabs */}
+      {(showTips || showCodeQuality) && (
+        <div className="w-80 bg-slate-800 border-l border-slate-600 flex flex-col">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-slate-700">
+            {showTips && skyTips.length > 0 && (
+              <button
+                onClick={() => setActiveTab('tips')}
+                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === 'tips'
+                    ? 'bg-slate-700 text-blue-400 border-b-2 border-blue-400'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <Lightbulb size={16} />
+                Tips
+              </button>
+            )}
+
+            {showCodeQuality && (
+              <button
+                onClick={() => setActiveTab('quality')}
+                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === 'quality'
+                    ? 'bg-slate-700 text-green-400 border-b-2 border-green-400'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <Shield size={16} />
+                Quality
+              </button>
+            )}
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'tips' && showTips && skyTips.length > 0 && (
+              <div className="h-full flex flex-col">
+                {/* Sky's Tips Section */}
+                <div className="p-4 border-b border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-white font-semibold flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-xs">🌟</span>
+                      </div>
+                      Sky's Tips
+                    </h3>
+                    <button
+                      onClick={() => setShowSkyTips(!showSkyTips)}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {showSkyTips && (
+                    <div className="space-y-2">
+                      {skyTips.map((tip, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg animate-slide-up"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs text-white font-bold">{index + 1}</span>
+                            </div>
+                            <p className="text-slate-100 text-sm leading-relaxed">{tip}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Help Section */}
+                <div className="p-4 flex-1">
+                  <div className="bg-slate-700 rounded-lg p-3">
+                    <h4 className="text-white font-medium mb-2">Quick Help</h4>
+                    <div className="space-y-2 text-slate-300 text-sm">
+                      <div>• Use <code className="bg-slate-600 px-1 rounded">print()</code> to show output</div>
+                      <div>• Check syntax for missing colons <code className="bg-slate-600 px-1 rounded">:</code></div>
+                      <div>• Ensure proper indentation (4 spaces)</div>
+                      <div>• Strings need quotes: <code className="bg-slate-600 px-1 rounded">"text"</code></div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg p-3">
+                    <p className="text-slate-100 text-sm leading-relaxed">
+                      <span className="font-semibold">💡 Pro Tip:</span> Try to solve without hints first for maximum XP! Hints are here to help you learn, not to give away the answer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'quality' && showCodeQuality && (
+              <div className="p-4 h-full overflow-y-auto">
+                <CodeQualityPanel
+                  code={currentCode}
+                  language={language}
+                  lessonContext={lessonContext}
+                  onAutoFix={handleAutoFix}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

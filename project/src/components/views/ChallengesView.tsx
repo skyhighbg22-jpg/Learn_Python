@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Target, Calendar, Zap, Trophy, Clock, CheckCircle, Users,
-  TrendingUp, Award, Star, Play, RotateCcw, History
+  TrendingUp, Award, Star, Play, RotateCcw, History, Flame
 } from 'lucide-react';
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { dailyChallengeService, DailyChallenge as ServiceDailyChallenge } from '../../services/dailyChallengeService';
 // Import with fallback for missing NotificationContext
 import { useNotifications } from '../../contexts/NotificationContext';
 
@@ -44,8 +45,8 @@ export const ChallengesView = () => {
       console.log('Notification:', notification);
     };
   }
-  const [todayChallenge, setTodayChallenge] = useState<DailyChallenge | null>(null);
-  const [completed, setCompleted] = useState(false);
+  const [todayChallenges, setTodayChallenges] = useState<ServiceDailyChallenge[]>([]);
+  const [completedChallenges, setCompletedChallenges] = useState<Set<string>>(new Set());
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [completionData, setCompletionData] = useState<ChallengeCompletion | null>(null);
@@ -55,6 +56,8 @@ export const ChallengesView = () => {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [streakData, setStreakData] = useState<any>(null);
+  const [streakBonus, setStreakBonus] = useState(0);
 
   // Helper function for exponential backoff retry
   const retryWithBackoff = async <T,>(
@@ -75,51 +78,51 @@ export const ChallengesView = () => {
     throw new Error('Max retries exceeded');
   };
 
-  // Load today's challenge
+  // Load today's challenges
   const loadTodayChallenge = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
       setError(null);
-      const today = new Date().toISOString().split('T')[0];
+      setLoading(true);
 
-      // Load challenge data with retry
-      const { data: challengeData, error: challengeError } = await retryWithBackoff(async () => {
-        return await supabase
-          .from('daily_challenges')
-          .select('*')
-          .eq('date', today)
-          .maybeSingle();
-      });
+      // Load challenges using new service
+      const challenges = await dailyChallengeService.getTodayChallenges();
+      setTodayChallenges(challenges);
 
-      if (challengeError) throw challengeError;
+      // Load user streak data
+      const streak = await dailyChallengeService.getUserStreakData(profile.id);
+      setStreakData(streak);
 
-      setTodayChallenge(challengeData);
+      // Calculate streak bonus
+      const bonus = await dailyChallengeService.calculateStreakBonus(profile.id);
+      setStreakBonus(bonus);
 
-      if (challengeData) {
-        // Check completion status with retry
-        const { data: completionData, error: completionError } = await retryWithBackoff(async () => {
+      // Load completion status for today's challenges
+      const completions = new Set<string>();
+      for (const challenge of challenges) {
+        const { data: completionData } = await retryWithBackoff(async () => {
           return await supabase
             .from('daily_challenge_attempts')
             .select('*')
             .eq('user_id', profile.id)
-            .eq('challenge_id', challengeData.id)
+            .eq('challenge_id', challenge.id)
             .eq('completed', true)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
         });
 
-        if (completionError) throw completionError;
-
-        setCompletionData(completionData);
-        setCompleted(!!completionData);
+        if (completionData) {
+          completions.add(challenge.id);
+        }
       }
 
+      setCompletedChallenges(completions);
       setRetryCount(0);
     } catch (error: any) {
-      console.error('Error loading today\'s challenge:', error);
-      setError('Failed to load challenge. Please try again.');
+      console.error('Error loading today\'s challenges:', error);
+      setError('Failed to load challenges. Please try again.');
       setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
@@ -198,8 +201,8 @@ export const ChallengesView = () => {
   }, []);
 
   // Start challenge
-  const startChallenge = async () => {
-    if (!todayChallenge || !profile?.id) return;
+  const startChallenge = async (challenge: ServiceDailyChallenge) => {
+    if (!challenge || !profile?.id) return;
 
     setIsStarting(true);
     try {
@@ -208,8 +211,8 @@ export const ChallengesView = () => {
         .from('daily_challenge_attempts')
         .insert({
           user_id: profile.id,
-          challenge_id: todayChallenge.id,
-          challenge_date: todayChallenge.date,
+          challenge_id: challenge.id,
+          challenge_date: new Date().toISOString().split('T')[0],
           score: 0,
           completed: false,
           attempts: 1,
@@ -223,7 +226,7 @@ export const ChallengesView = () => {
       addNotification({
         type: 'success',
         title: 'Challenge Started',
-        message: todayChallenge.title,
+        message: `${challenge.title} - ${challenge.difficulty}`,
         duration: 3000
       });
 
@@ -272,24 +275,14 @@ export const ChallengesView = () => {
   const calculateStats = () => {
     const completedCount = challengeHistory.length;
     const totalXP = challengeHistory.reduce((sum, h) => sum + (h.challenge.xp_reward || 0), 0);
-    const bestStreak = Math.max(...challengeHistory.map((_, index) => {
-      let streak = 0;
-      for (let i = index; i < challengeHistory.length; i++) {
-        const date = new Date(challengeHistory[i].completed_at);
-        const nextDate = new Date(challengeHistory[i - 1]?.completed_at || '');
-        if (i === index || (nextDate && (date.getTime() - nextDate.getTime()) === 86400000)) {
-          streak++;
-        } else {
-          break;
-        }
-      }
-      return streak;
-    }));
+    const todayCompleted = todayChallenges.filter(c => completedChallenges.has(c.id)).length;
+    const currentStreak = streakData?.current_streak || 0;
+    const bestStreak = streakData?.longest_streak || 0;
 
-    return { completedCount, totalXP, bestStreak };
+    return { completedCount, totalXP, bestStreak, todayCompleted, currentStreak };
   };
 
-  const { completedCount, totalXP, bestStreak } = calculateStats();
+  const { completedCount, totalXP, bestStreak, todayCompleted, currentStreak } = calculateStats();
 
   if (error && retryCount > 2) {
     return (
@@ -369,89 +362,123 @@ export const ChallengesView = () => {
                   <Calendar className="text-white" size={32} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Today's Challenge</h3>
+                  <h3 className="text-2xl font-bold text-white">Daily Challenges</h3>
                   <p className="text-blue-300 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                  <div className="flex items-center gap-2 mt-2 text-slate-400 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>Time remaining: {timeLeft}</span>
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Clock className="w-4 h-4" />
+                      <span>Time left: {timeLeft}</span>
+                    </div>
+                    {currentStreak > 0 && (
+                      <div className="flex items-center gap-2 text-orange-400 text-sm">
+                        <Flame className="w-4 h-4" />
+                        <span>{currentStreak} day streak! 🔥</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              {completed && (
+              {todayCompleted === todayChallenges.length && todayChallenges.length > 0 && (
                 <div className="bg-green-500 text-white px-4 py-2 rounded-full font-semibold flex items-center gap-2">
                   <CheckCircle size={18} />
-                  Completed
+                  All Completed!
                 </div>
               )}
             </div>
 
-            {todayChallenge ? (
+            {todayChallenges.length > 0 ? (
               <div className="space-y-6">
-                <div>
-                  <h4 className="text-xl font-semibold text-white mb-3">
-                    {todayChallenge.title}
-                  </h4>
-                  <p className="text-slate-300 mb-4 text-lg">{todayChallenge.description}</p>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <span className={`px-4 py-2 rounded-full font-semibold capitalize ${
-                      todayChallenge.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                      todayChallenge.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {todayChallenge.difficulty}
-                    </span>
-                    <span className="text-yellow-400 font-semibold flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full">
-                      <Zap size={18} />
-                      +{todayChallenge.xp_reward} XP
-                    </span>
-                    {completionData && (
-                      <span className="text-blue-400 font-semibold flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-full">
-                        <Star size={18} />
-                        Score: {completionData.score}
-                      </span>
-                    )}
-                  </div>
+                {/* Challenge Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {todayChallenges.map((challenge, index) => {
+                    const isCompleted = completedChallenges.has(challenge.id);
+                    const difficultyColor = dailyChallengeService.getDifficultyColor(challenge.difficulty);
+                    const timeEstimate = dailyChallengeService.getTimeEstimateText(challenge.estimated_minutes);
+
+                    return (
+                      <div key={challenge.id} className={`relative bg-slate-800 rounded-xl p-6 border ${
+                        isCompleted ? 'border-green-600 bg-green-900/20' : 'border-slate-600 hover:border-slate-500'
+                      } transition-all duration-200 hover:transform hover:scale-105`}>
+                        {isCompleted && (
+                          <div className="absolute top-3 right-3">
+                            <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                              <CheckCircle size={14} />
+                              Done
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between mb-4">
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${difficultyColor}`}>
+                            {dailyChallengeService.getDifficultyLabel(challenge.difficulty)}
+                          </div>
+                          <div className="text-yellow-400 font-semibold flex items-center gap-1 bg-yellow-500/20 px-3 py-1 rounded-full">
+                            <Zap size={14} />
+                            +{challenge.xp_reward} XP
+                          </div>
+                        </div>
+
+                        <h4 className="text-lg font-semibold text-white mb-3">
+                          {challenge.title}
+                        </h4>
+                        <p className="text-slate-300 text-sm mb-4 leading-relaxed">{challenge.description}</p>
+
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2 text-slate-400 text-sm">
+                            <Clock size={14} />
+                            <span>{timeEstimate}</span>
+                          </div>
+                          <div className="text-blue-400 text-sm font-medium">
+                            {challenge.challenge_type}
+                          </div>
+                        </div>
+
+                        {!isCompleted ? (
+                          <button
+                            onClick={() => startChallenge(challenge)}
+                            disabled={isStarting}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+                          >
+                            {isStarting ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Starting...
+                              </>
+                            ) : (
+                              <>
+                                <Play size={16} />
+                                Start Challenge
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="text-green-400" size={16} />
+                              <span className="text-green-400 font-semibold">Completed</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {!completed ? (
-                  <div className="flex gap-4">
-                    <button
-                      onClick={startChallenge}
-                      disabled={isStarting}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"
-                    >
-                      {isStarting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Starting...
-                        </>
-                      ) : (
-                        <>
-                          <Play size={20} />
-                          Start Challenge
-                        </>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CheckCircle className="text-green-400" size={20} />
-                      <span className="text-green-400 font-semibold">Challenge Completed!</span>
+                {/* Streak Bonus Section */}
+                {streakBonus > 0 && (
+                  <div className="bg-gradient-to-r from-orange-900/50 to-red-900/50 rounded-xl p-6 border border-orange-600">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                        <Flame className="text-white" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">Streak Bonus Unlocked! 🎉</h3>
+                        <p className="text-orange-300">You've completed challenges for 7 days straight!</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-slate-400">Score:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.score}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">Time:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.completion_time}s</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">Attempts:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.attempts}</span>
-                      </div>
+                    <div className="bg-orange-500/20 border border-orange-500 border-opacity-30 rounded-lg p-4">
+                      <p className="text-orange-100 font-semibold text-lg">+{streakBonus} XP Bonus!</p>
+                      <p className="text-orange-300 text-sm mt-1">Keep the streak going for more rewards!</p>
                     </div>
                   </div>
                 )}
@@ -459,14 +486,14 @@ export const ChallengesView = () => {
             ) : (
               <div className="text-center py-12">
                 <Target className="text-slate-600 mx-auto mb-4" size={64} />
-                <p className="text-slate-400 text-lg">No challenge available today</p>
-                <p className="text-slate-500 text-sm mt-2">Check back tomorrow for a new challenge!</p>
+                <p className="text-slate-400 text-lg">No challenges available today</p>
+                <p className="text-slate-500 text-sm mt-2">Check back tomorrow for new challenges!</p>
               </div>
             )}
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
               <Trophy className="text-blue-400 mb-3" size={28} />
               <p className="text-3xl font-bold text-white mb-1">{completedCount}</p>
@@ -476,6 +503,11 @@ export const ChallengesView = () => {
               <Zap className="text-yellow-400 mb-3" size={28} />
               <p className="text-3xl font-bold text-white mb-1">{totalXP}</p>
               <p className="text-slate-400 text-sm">Total Challenge XP</p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+              <Flame className="text-orange-400 mb-3" size={28} />
+              <p className="text-3xl font-bold text-white mb-1">{currentStreak} days</p>
+              <p className="text-slate-400 text-sm">Current Streak 🔥</p>
             </div>
             <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
               <TrendingUp className="text-green-400 mb-3" size={28} />

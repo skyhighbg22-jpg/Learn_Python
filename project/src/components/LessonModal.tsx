@@ -6,6 +6,8 @@ import { CodeEditor } from './CodeEditor';
 import { DragDropLesson } from './DragDropLesson';
 import { PuzzleGameLesson } from './PuzzleGameLesson';
 import { StoryLesson } from './StoryLesson';
+import { ProgressiveHints } from './ui/ProgressiveHints';
+import { SkyTips } from './ui/SkyTips';
 
 type LessonModalProps = {
   lesson: Lesson;
@@ -22,6 +24,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   const [isCompleting, setIsCompleting] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [startTime] = useState(Date.now());
+  const [revealedHints, setRevealedHints] = useState<number[]>([]);
 
   const currentContent = lesson.content[currentStep];
   const isLastStep = currentStep === lesson.content.length - 1;
@@ -58,6 +61,18 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
     }
   };
 
+  const handleHintRevealed = (hintIndex: number) => {
+    setRevealedHints(prev => [...prev, hintIndex]);
+  };
+
+  const calculateFinalXP = () => {
+    if (revealedHints.length === 0) return lesson.xp_reward;
+
+    const penalties = [0, 10, 25, 50]; // 0%, 10%, 25%, 50%
+    const penalty = penalties[Math.min(revealedHints.length, 3)] || 50;
+    return Math.round(lesson.xp_reward * (1 - penalty / 100));
+  };
+
   const handleNext = () => {
     if (isLastStep) {
       completeLesson();
@@ -66,6 +81,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
       setSelectedAnswer('');
       setUserCode('');
       setFeedback(null);
+      setRevealedHints([]);
     }
   };
 
@@ -102,11 +118,12 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         });
       }
 
+      const finalXP = calculateFinalXP();
       await supabase
         .from('profiles')
         .update({
-          total_xp: profile.total_xp + lesson.xp_reward,
-          current_level: Math.floor((profile.total_xp + lesson.xp_reward) / 100) + 1,
+          total_xp: profile.total_xp + finalXP,
+          current_level: Math.floor((profile.total_xp + finalXP) / 100) + 1,
         })
         .eq('id', profile.id);
 
@@ -322,7 +339,10 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
             <div className="text-center animate-bounce-gentle">
               <div className="text-6xl mb-4">🎉</div>
               <h3 className="text-3xl font-bold text-gradient mb-2">Lesson Complete!</h3>
-              <p className="text-slate-300 text-lg">You earned {lesson.xp_reward} XP</p>
+              <p className="text-slate-300 text-lg">You earned {calculateFinalXP()} XP</p>
+              {revealedHints.length > 0 && (
+                <p className="text-slate-400 text-sm">(-{(100 - (calculateFinalXP() / lesson.xp_reward) * 100).toFixed(0)}% from hints)</p>
+              )}
             </div>
           </div>
         )}
@@ -352,14 +372,25 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
           )}
 
           {currentContent.type === 'code' && (
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
               <CodeEditor
                 value={userCode}
                 onChange={setUserCode}
                 initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
               />
+
+              {/* Progressive Hints System */}
+              {currentContent.hints && currentContent.hints.length > 0 && (
+                <ProgressiveHints
+                  hints={currentContent.hints}
+                  onHintRevealed={handleHintRevealed}
+                  xpReward={lesson.xp_reward}
+                  revealedHints={revealedHints}
+                />
+              )}
+
               {currentContent.solution && (
-                <div className="mt-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
+                <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
                   <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
                   <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
                 </div>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, Lock, CheckCircle, Play, Star, Code, Trophy, BookOpen, Sparkles, Clock, Users } from 'lucide-react';
+import { ChevronRight, Lock, CheckCircle, Play, Star, Code, Trophy, BookOpen, Sparkles, Clock, Users, Target, TrendingUp, Zap } from 'lucide-react';
 import { supabase, Section, Lesson } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { LessonModal } from '../LessonModal';
+import { learningPathService, LearningPathData } from '../../services/learningPathService';
 
 export const LearnView = () => {
   const { profile } = useAuth();
@@ -13,10 +14,18 @@ export const LearnView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
+  const [dailyGoal, setDailyGoal] = useState<any>(null);
 
   useEffect(() => {
     loadContent();
   }, []);
+
+  useEffect(() => {
+    if (profile?.id) {
+      loadLearningPaths();
+    }
+  }, [profile]);
 
   const loadContent = async () => {
     try {
@@ -68,6 +77,22 @@ export const LearnView = () => {
       setError('Failed to load lessons. Please check your connection and try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLearningPaths = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const [paths, goal] = await Promise.all([
+        learningPathService.calculateLearningPaths(profile.id),
+        learningPathService.getDailyGoalRecommendation(profile.id)
+      ]);
+
+      setLearningPaths(paths);
+      setDailyGoal(goal);
+    } catch (error) {
+      console.error('Failed to load learning paths:', error);
     }
   };
 
@@ -227,6 +252,158 @@ export const LearnView = () => {
           </div>
         </div>
 
+        {/* Learning Paths Section */}
+        {learningPaths.length > 0 && (
+          <div className="mb-12 animate-in animate-delay-200">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-white mb-3 flex items-center justify-center gap-2">
+                <Target className="text-primary-400" size={28} />
+                Your Learning Journey
+              </h2>
+              <p className="text-slate-300">Follow structured paths to master Python step by step</p>
+
+              {dailyGoal && (
+                <div className="mt-4 inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full text-sm">
+                  <Zap className="text-yellow-400" size={16} />
+                  <span className="text-white font-medium">{dailyGoal.message}</span>
+                  <span className="text-primary-200">
+                    • {dailyGoal.recommendedMinutes}min daily goal
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {learningPaths.map((path, index) => {
+                const isUnlocked = path.isUnlocked;
+                const PathIcon = path.icon === 'string' ? () => <span className="text-2xl">{path.icon}</span> : Target;
+
+                return (
+                  <div
+                    key={path.id}
+                    className={`relative group ${
+                      !isUnlocked ? 'opacity-75' : ''
+                    } animate-in animate-delay-${index * 100}`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className={`card-interactive p-6 h-full ${
+                      !isUnlocked ? 'cursor-not-allowed' : ''
+                    }`}>
+                      {/* Status Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${path.color}`}>
+                          <PathIcon />
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          path.status === 'completed' ? 'bg-success-500 bg-opacity-20 text-success-400' :
+                          path.status === 'in_progress' ? 'bg-warning-500 bg-opacity-20 text-warning-400' :
+                          'bg-slate-500 bg-opacity-20 text-slate-400'
+                        }`}>
+                          {path.status === 'completed' ? 'Completed' :
+                           path.status === 'in_progress' ? `${path.progressPercentage}%` : 'Not Started'}
+                        </div>
+                      </div>
+
+                      {/* Path Info */}
+                      <h3 className="text-lg font-bold text-white mb-2">{path.name}</h3>
+                      <p className="text-slate-400 text-sm mb-4 line-clamp-2">{path.description}</p>
+
+                      {/* Stats */}
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <BookOpen size={14} />
+                            Lessons
+                          </span>
+                          <span className="text-white font-medium">
+                            {path.completedLessons}/{path.totalLessons}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Clock size={14} />
+                            Time
+                          </span>
+                          <span className="text-white font-medium">{learningPathService.formatTime(path.estimatedMinutes)}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <TrendingUp size={14} />
+                            XP
+                          </span>
+                          <span className="text-white font-medium">+{path.xpReward}</span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {path.totalLessons > 0 && (
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span>Progress</span>
+                            <span>{path.progressPercentage}%</span>
+                          </div>
+                          <div className="progress-bar h-2">
+                            <div
+                              className={`progress-fill bg-gradient-to-r ${path.color}`}
+                              style={{ width: `${path.progressPercentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* CTA Button */}
+                      {!isUnlocked ? (
+                        <div className="text-center py-2 px-4 bg-slate-800 rounded-lg">
+                          <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+                            <Lock size={16} />
+                            <span>{path.prerequisites.length > 0 ? 'Complete prerequisites' : 'Locked'}</span>
+                          </div>
+                        </div>
+                      ) : path.status === 'completed' ? (
+                        <div className="text-center py-2 px-4 bg-success-600 bg-opacity-20 rounded-lg">
+                          <div className="flex items-center justify-center gap-2 text-success-400 text-sm">
+                            <CheckCircle size={16} />
+                            <span>Completed</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className={`w-full py-2 px-4 bg-gradient-to-r ${path.color} text-white rounded-lg font-medium text-sm hover:opacity-90 transition-opacity duration-200 flex items-center justify-center gap-2`}
+                          onClick={() => {
+                            // Focus on the first incomplete lesson in this path
+                            const firstIncompleteSection = sections.find(section => {
+                              // This would need to be implemented based on path mapping
+                              return isUnlocked;
+                            });
+                            if (firstIncompleteSection) {
+                              // Scroll to that section
+                              document.getElementById(`section-${firstIncompleteSection.id}`)?.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          {path.status === 'not_started' ? (
+                            <>
+                              <Play size={16} />
+                              <span>Begin Path</span>
+                            </>
+                          ) : (
+                            <>
+                              <TrendingUp size={16} />
+                              <span>Continue ({path.timeToComplete} left)</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Lesson Type Legend */}
         <div className="mb-8 flex flex-wrap items-center justify-center gap-4 text-sm animate-in animate-delay-100">
           <button
@@ -311,6 +488,7 @@ export const LearnView = () => {
 
             return (
               <div
+                id={`section-${section.id}`}
                 key={section.id}
                 className={`card-enhanced relative overflow-hidden animate-in animate-delay-${sectionIndex * 100}`}
                 style={{ animationDelay: `${sectionIndex * 100}ms` }}

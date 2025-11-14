@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { Sidebar } from './components/Sidebar';
@@ -9,10 +9,26 @@ import { LeaderboardView } from './components/views/LeaderboardView';
 import { ChallengesView } from './components/views/ChallengesView';
 import { PracticeView } from './components/views/PracticeView';
 import { FriendsView } from './components/views/FriendsView';
+import { AICharacter } from './components/ui/AICharacter';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState('learn');
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [lessonContext, setLessonContext] = useState<string>();
+
+  // Handle keyboard shortcut for AI chat (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsAIChatOpen(!isAIChatOpen);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isAIChatOpen]);
 
   if (loading) {
     return (
@@ -52,6 +68,11 @@ const MainApp = () => {
         <Header />
         <main className="flex-1 overflow-y-auto">{renderView()}</main>
       </div>
+      <AICharacter
+        isOpen={isAIChatOpen}
+        onToggle={() => setIsAIChatOpen(!isAIChatOpen)}
+        lessonContext={lessonContext}
+      />
     </div>
   );
 };
