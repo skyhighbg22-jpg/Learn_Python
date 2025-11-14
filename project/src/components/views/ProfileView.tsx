@@ -5,6 +5,8 @@ import AchievementService, { AchievementProgress } from '../../services/achievem
 import { ProfilePictureUpload } from '../ui/ProfilePictureUpload';
 import { SkillProgress } from '../ui/SkillProgress';
 import { profileAnalyticsService, SkillData, LearningPathData } from '../../services/profileAnalyticsService';
+import { LeagueProgress } from '../ui/LeagueProgress';
+import { leagueService, UserRanking } from '../../services/leagueService';
 
 export const ProfileView = () => {
   const { profile, loading: authLoading, refreshProfile, updateProfileAvatar } = useAuth();
