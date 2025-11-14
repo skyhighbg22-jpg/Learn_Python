@@ -167,6 +167,26 @@ export const ProfileView = () => {
     }
   };
 
+  const getRarityBorder = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'border-gray-500';
+      case 'rare': return 'border-blue-500';
+      case 'epic': return 'border-purple-500';
+      case 'legendary': return 'border-yellow-500';
+      default: return 'border-gray-500';
+    }
+  };
+
+  const getRarityGradient = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'from-gray-600 to-gray-700';
+      case 'rare': return 'from-blue-600 to-blue-700';
+      case 'epic': return 'from-purple-600 to-purple-700';
+      case 'legendary': return 'from-yellow-600 to-orange-600';
+      default: return 'from-gray-600 to-gray-700';
+    }
+  };
+
   const getRarityBg = (rarity: string) => {
     switch (rarity) {
       case 'common': return 'bg-gray-500/20';
