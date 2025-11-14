@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3 } from 'lucide-react';
 import AchievementService, { AchievementProgress } from '../../services/achievementService';
+import { ProfilePictureUpload } from '../ui/ProfilePictureUpload';
 
 export const ProfileView = () => {
   const { profile, loading: authLoading, refreshProfile } = useAuth();
