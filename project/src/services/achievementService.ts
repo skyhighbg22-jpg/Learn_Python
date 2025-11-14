@@ -450,13 +450,17 @@ class AchievementService {
     }
   }
 
-  // Get achievement statistics
+  // Enhanced achievement statistics with rarity breakdown
   async getAchievementStats(userId: string): Promise<{
     total: number;
     unlocked: number;
     completion_rate: number;
     xp_from_achievements: number;
+    total_points: number;
+    by_rarity: Record<string, { total: number; unlocked: number; points: number }>;
     by_category: Record<string, { total: number; unlocked: number }>;
+    secret_unlocked: number;
+    rewards_claimed: Reward[];
   }> {
     try {
       const allAchievements = await this.getAllAchievements();
