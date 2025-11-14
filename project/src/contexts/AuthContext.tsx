@@ -12,6 +12,7 @@ type AuthContextType = {
   signInWithApple: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateProfileAvatar: (avatarUrl: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 };
