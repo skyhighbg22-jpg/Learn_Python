@@ -493,7 +493,7 @@ export const ChallengesView = () => {
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
               <Trophy className="text-blue-400 mb-3" size={28} />
               <p className="text-3xl font-bold text-white mb-1">{completedCount}</p>
@@ -503,6 +503,11 @@ export const ChallengesView = () => {
               <Zap className="text-yellow-400 mb-3" size={28} />
               <p className="text-3xl font-bold text-white mb-1">{totalXP}</p>
               <p className="text-slate-400 text-sm">Total Challenge XP</p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+              <Flame className="text-orange-400 mb-3" size={28} />
+              <p className="text-3xl font-bold text-white mb-1">{currentStreak} days</p>
+              <p className="text-slate-400 text-sm">Current Streak 🔥</p>
             </div>
             <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
               <TrendingUp className="text-green-400 mb-3" size={28} />
