@@ -60,6 +60,18 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
     }
   };
 
+  const handleHintRevealed = (hintIndex: number) => {
+    setRevealedHints(prev => [...prev, hintIndex]);
+  };
+
+  const calculateFinalXP = () => {
+    if (revealedHints.length === 0) return lesson.xp_reward;
+
+    const penalties = [0, 10, 25, 50]; // 0%, 10%, 25%, 50%
+    const penalty = penalties[Math.min(revealedHints.length, 3)] || 50;
+    return Math.round(lesson.xp_reward * (1 - penalty / 100));
+  };
+
   const handleNext = () => {
     if (isLastStep) {
       completeLesson();
@@ -68,6 +80,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
       setSelectedAnswer('');
       setUserCode('');
       setFeedback(null);
+      setRevealedHints([]);
     }
   };
 
