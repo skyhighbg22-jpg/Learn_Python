@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Target, Calendar, Zap, Trophy, Clock, CheckCircle, Users,
-  TrendingUp, Award, Star, Play, RotateCcw, History
+  TrendingUp, Award, Star, Play, RotateCcw, History, Flame
 } from 'lucide-react';
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { dailyChallengeService, DailyChallenge as ServiceDailyChallenge } from '../../services/dailyChallengeService';
 // Import with fallback for missing NotificationContext
 import { useNotifications } from '../../contexts/NotificationContext';
 
