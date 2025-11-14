@@ -13,6 +13,7 @@ interface ProfilePictureUploadProps {
 export const ProfilePictureUpload = ({
   currentAvatar,
   onAvatarChange,
+  onAvatarUrlChange,
   userId,
   className = '',
   size = 'md'
