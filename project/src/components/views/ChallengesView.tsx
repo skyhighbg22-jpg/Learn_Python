@@ -275,24 +275,14 @@ export const ChallengesView = () => {
   const calculateStats = () => {
     const completedCount = challengeHistory.length;
     const totalXP = challengeHistory.reduce((sum, h) => sum + (h.challenge.xp_reward || 0), 0);
-    const bestStreak = Math.max(...challengeHistory.map((_, index) => {
-      let streak = 0;
-      for (let i = index; i < challengeHistory.length; i++) {
-        const date = new Date(challengeHistory[i].completed_at);
-        const nextDate = new Date(challengeHistory[i - 1]?.completed_at || '');
-        if (i === index || (nextDate && (date.getTime() - nextDate.getTime()) === 86400000)) {
-          streak++;
-        } else {
-          break;
-        }
-      }
-      return streak;
-    }));
+    const todayCompleted = todayChallenges.filter(c => completedChallenges.has(c.id)).length;
+    const currentStreak = streakData?.current_streak || 0;
+    const bestStreak = streakData?.longest_streak || 0;
 
-    return { completedCount, totalXP, bestStreak };
+    return { completedCount, totalXP, bestStreak, todayCompleted, currentStreak };
   };
 
-  const { completedCount, totalXP, bestStreak } = calculateStats();
+  const { completedCount, totalXP, bestStreak, todayCompleted, currentStreak } = calculateStats();
 
   if (error && retryCount > 2) {
     return (
