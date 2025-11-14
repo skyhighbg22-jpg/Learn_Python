@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { Sidebar } from './components/Sidebar';
@@ -9,6 +9,7 @@ import { LeaderboardView } from './components/views/LeaderboardView';
 import { ChallengesView } from './components/views/ChallengesView';
 import { PracticeView } from './components/views/PracticeView';
 import { FriendsView } from './components/views/FriendsView';
+import { AICharacter } from './components/ui/AICharacter';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
