@@ -5,7 +5,7 @@ import AchievementService, { AchievementProgress } from '../../services/achievem
 import { ProfilePictureUpload } from '../ui/ProfilePictureUpload';
 
 export const ProfileView = () => {
-  const { profile, loading: authLoading, refreshProfile } = useAuth();
+  const { profile, loading: authLoading, refreshProfile, updateProfileAvatar } = useAuth();
   const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
   const [achievementStats, setAchievementStats] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
