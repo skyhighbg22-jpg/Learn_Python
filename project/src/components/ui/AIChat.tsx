@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Mic, MicOff, Settings, Trash2, Copy, Check } from 'lucide-react';
+import { Send, Bot, User, Mic, MicOff, Settings, Trash2, Copy, Check, Zap, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatMessage {
