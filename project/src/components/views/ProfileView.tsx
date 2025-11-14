@@ -87,7 +87,7 @@ export const ProfileView = () => {
 
       try {
         setLoading(true);
-        const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData] = await Promise.all([
+        const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData, rewards, celebrations] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
           AchievementService.getAchievementStats(profile.id),
           profileAnalyticsService.calculateSkillProgress(profile.id),
@@ -95,7 +95,10 @@ export const ProfileView = () => {
           profileAnalyticsService.calculateProfileStats(profile.id),
           leagueService.calculateUserRank(profile.id, profile.total_xp),
           leagueService.getLeagueLeaderboard(profile.id, profile.total_xp),
-          leagueService.getLeagueSize(profile.id, profile.total_xp)
+          leagueService.getLeagueSize(profile.id, profile.total_xp),
+          // New enhanced features
+          Promise.resolve([]), // TODO: AchievementService.getSpecialRewards(profile.id)
+          Promise.resolve([])  // TODO: AchievementService.getUnviewedCelebrations(profile.id)
         ]);
 
         setAchievementProgress(progress);
