@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, Lock, CheckCircle, Play, Star, Code, Trophy, BookOpen, Sparkles, Clock, Users } from 'lucide-react';
+import { ChevronRight, Lock, CheckCircle, Play, Star, Code, Trophy, BookOpen, Sparkles, Clock, Users, Target, TrendingUp, Zap } from 'lucide-react';
 import { supabase, Section, Lesson } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { LessonModal } from '../LessonModal';
+import { learningPathService, LearningPathData } from '../../services/learningPathService';
 
 export const LearnView = () => {
   const { profile } = useAuth();
