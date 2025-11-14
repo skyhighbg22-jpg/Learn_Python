@@ -338,7 +338,10 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
             <div className="text-center animate-bounce-gentle">
               <div className="text-6xl mb-4">🎉</div>
               <h3 className="text-3xl font-bold text-gradient mb-2">Lesson Complete!</h3>
-              <p className="text-slate-300 text-lg">You earned {lesson.xp_reward} XP</p>
+              <p className="text-slate-300 text-lg">You earned {calculateFinalXP()} XP</p>
+              {revealedHints.length > 0 && (
+                <p className="text-slate-400 text-sm">(-{(100 - (calculateFinalXP() / lesson.xp_reward) * 100).toFixed(0)}% from hints)</p>
+              )}
             </div>
           </div>
         )}
