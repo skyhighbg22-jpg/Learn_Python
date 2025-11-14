@@ -12,6 +12,7 @@ type AuthContextType = {
   signInWithApple: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateProfileAvatar: (avatarUrl: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 };
@@ -32,18 +33,85 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Create fallback profile when fetch fails
+        const fallbackProfile: Profile = {
+          id: userId,
+          username: `user_${userId.slice(0, 8)}`,
+          display_name: 'New Learner',
+          avatar_character: 'sky',
+          avatar_url: null,
+          current_streak: 0,
+          longest_streak: 0,
+          total_xp: 0,
+          current_level: 1,
+          hearts: 5,
+          last_heart_reset: new Date().toISOString(),
+          league: 'bronze',
+          learning_path: null,
+          daily_goal_minutes: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setProfile(fallbackProfile);
+        return;
+      }
+
+      // If profile doesn't exist yet, create fallback profile
+      if (!data) {
+        const fallbackProfile: Profile = {
+          id: userId,
+          username: `user_${userId.slice(0, 8)}`,
+          display_name: 'New Learner',
+          avatar_character: 'sky',
+          avatar_url: null,
+          current_streak: 0,
+          longest_streak: 0,
+          total_xp: 0,
+          current_level: 1,
+          hearts: 5,
+          last_heart_reset: new Date().toISOString(),
+          league: 'bronze',
+          learning_path: null,
+          daily_goal_minutes: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setProfile(fallbackProfile);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Unexpected error in fetchProfile:', error);
+      // Create fallback profile for any unexpected errors
+      const fallbackProfile: Profile = {
+        id: userId,
+        username: `user_${userId.slice(0, 8)}`,
+        display_name: 'New Learner',
+        avatar_character: 'sky',
+        avatar_url: null,
+        current_streak: 0,
+        longest_streak: 0,
+        total_xp: 0,
+        current_level: 1,
+        hearts: 5,
+        last_heart_reset: new Date().toISOString(),
+        league: 'bronze',
+        learning_path: null,
+        daily_goal_minutes: 30,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      setProfile(fallbackProfile);
     }
-
-    setProfile(data);
   };
 
   useEffect(() => {
@@ -91,6 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       full_name: fullName || username,
       display_name: fullName || username,
       avatar_character: 'sky',
+      avatar_url: null,
       email_confirmed: false,
       signup_method: 'email',
     });
@@ -162,6 +231,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         username,
         full_name: fullName || username,
         display_name: fullName || username,
+        avatar_character: 'sky', // Default avatar character for OAuth users
         avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         email_confirmed: true, // OAuth emails are pre-verified
         signup_method: 'google',
@@ -285,6 +355,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateProfileAvatar = async (avatarUrl: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating avatar:', error);
+        throw error;
+      }
+
+      // Update local profile state
+      setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+    } catch (error) {
+      console.error('Failed to update avatar:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -297,6 +388,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signInWithApple,
         signOut,
         refreshProfile,
+        updateProfileAvatar,
         resendVerificationEmail,
         resetPassword,
       }}

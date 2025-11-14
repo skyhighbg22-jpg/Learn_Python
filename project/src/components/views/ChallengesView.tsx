@@ -56,45 +56,59 @@ export const ChallengesView = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Helper function for exponential backoff retry
+  const retryWithBackoff = async <T,>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (attempt === maxRetries) throw error;
+
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error('Max retries exceeded');
+  };
+
   // Load today's challenge
   const loadTodayChallenge = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
       setError(null);
-
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
-
       const today = new Date().toISOString().split('T')[0];
 
-      const dataPromise = supabase
-        .from('daily_challenges')
-        .select('*')
-        .eq('date', today)
-        .maybeSingle();
-
-      const { data: challengeData, error: challengeError } = await Promise.race([dataPromise, timeoutPromise]) as any;
+      // Load challenge data with retry
+      const { data: challengeData, error: challengeError } = await retryWithBackoff(async () => {
+        return await supabase
+          .from('daily_challenges')
+          .select('*')
+          .eq('date', today)
+          .maybeSingle();
+      });
 
       if (challengeError) throw challengeError;
 
       setTodayChallenge(challengeData);
 
       if (challengeData) {
-        // Check completion status
-        const completionPromise = supabase
-          .from('daily_challenge_attempts')
-          .select('*')
-          .eq('user_id', profile.id)
-          .eq('challenge_id', challengeData.id)
-          .eq('completed', true)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        const { data: completionData, error: completionError } = await Promise.race([completionPromise, timeoutPromise]) as any;
+        // Check completion status with retry
+        const { data: completionData, error: completionError } = await retryWithBackoff(async () => {
+          return await supabase
+            .from('daily_challenge_attempts')
+            .select('*')
+            .eq('user_id', profile.id)
+            .eq('challenge_id', challengeData.id)
+            .eq('completed', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        });
 
         if (completionError) throw completionError;
 
@@ -105,10 +119,7 @@ export const ChallengesView = () => {
       setRetryCount(0);
     } catch (error: any) {
       console.error('Error loading today\'s challenge:', error);
-      setError(error.message === 'Request timeout'
-        ? 'Connection timeout. Please check your internet connection.'
-        : 'Failed to load challenge. Please try again.'
-      );
+      setError('Failed to load challenge. Please try again.');
       setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
