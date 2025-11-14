@@ -33,6 +33,10 @@ export interface UserAchievement {
   achievement_id: string;
   unlocked_at: string;
   progress: number; // 0-100 percentage
+  rarity: string;
+  celebration_viewed: boolean;
+  shared_externally: boolean;
+  rewards_applied: boolean;
 }
 
 export interface AchievementProgress {
