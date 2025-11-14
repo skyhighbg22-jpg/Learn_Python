@@ -38,6 +38,8 @@ export const AIChat: React.FC<AIChatProps> = ({
   const [conversationId, setConversationId] = useState<string>('');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [providerInfo, setProviderInfo] = useState<{ provider: string; model: string } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connected');
+  const [showConnectionError, setShowConnectionError] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
