@@ -229,26 +229,72 @@ export const LearnView = () => {
 
         {/* Lesson Type Legend */}
         <div className="mb-8 flex flex-wrap items-center justify-center gap-4 text-sm animate-in animate-delay-100">
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
-            <Sparkles className="text-success-400" size={16} />
-            <span className="text-slate-300">Traditional</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
-            <Code className="text-primary-400" size={16} />
-            <span className="text-slate-300">Coding</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
-            <Code className="text-purple-400" size={16} />
-            <span className="text-slate-300">Drag & Drop</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
-            <Trophy className="text-warning-400" size={16} />
-            <span className="text-slate-300">Puzzle Game</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
-            <BookOpen className="text-info-400" size={16} />
-            <span className="text-slate-300">Story</span>
-          </div>
+          <button
+            onClick={() => setActiveFilter('all')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <BookOpen size={16} />
+            <span>All ({getFilterCount('all')})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('traditional')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'traditional'
+                ? 'bg-green-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <Sparkles className={activeFilter === 'traditional' ? 'text-white' : 'text-success-400'} size={16} />
+            <span>Traditional ({getFilterCount('traditional')})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('coding')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'coding'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <Code className={activeFilter === 'coding' ? 'text-white' : 'text-primary-400'} size={16} />
+            <span>Coding ({getFilterCount('coding')})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('drag-drop')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'drag-drop'
+                ? 'bg-purple-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <Code className={activeFilter === 'drag-drop' ? 'text-white' : 'text-purple-400'} size={16} />
+            <span>Drag & Drop ({getFilterCount('drag-drop')})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('puzzle')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'puzzle'
+                ? 'bg-yellow-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <Trophy className={activeFilter === 'puzzle' ? 'text-white' : 'text-warning-400'} size={16} />
+            <span>Puzzle Game ({getFilterCount('puzzle')})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('story')}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+              activeFilter === 'story'
+                ? 'bg-cyan-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <BookOpen className={activeFilter === 'story' ? 'text-white' : 'text-info-400'} size={16} />
+            <span>Story ({getFilterCount('story')})</span>
+          </button>
         </div>
 
         <div className="space-y-8">
