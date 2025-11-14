@@ -83,12 +83,15 @@ export const ProfileView = () => {
 
       try {
         setLoading(true);
-        const [progress, stats, skillData, pathData, analytics] = await Promise.all([
+        const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
           AchievementService.getAchievementStats(profile.id),
           profileAnalyticsService.calculateSkillProgress(profile.id),
           profileAnalyticsService.calculateLearningPaths(profile.id),
-          profileAnalyticsService.calculateProfileStats(profile.id)
+          profileAnalyticsService.calculateProfileStats(profile.id),
+          leagueService.calculateUserRank(profile.id, profile.total_xp),
+          leagueService.getLeagueLeaderboard(profile.id, profile.total_xp),
+          leagueService.getLeagueSize(profile.id, profile.total_xp)
         ]);
 
         setAchievementProgress(progress);
@@ -96,6 +99,8 @@ export const ProfileView = () => {
         setSkills(skillData);
         setLearningPaths(pathData);
         setProfileStats(analytics);
+        setUserRanking(userRanking);
+        setLeagueUsers(leaderboardData);
       } catch (error) {
         console.error('Error loading profile data:', error);
       } finally {
