@@ -68,6 +68,11 @@ const MainApp = () => {
         <Header />
         <main className="flex-1 overflow-y-auto">{renderView()}</main>
       </div>
+      <AICharacter
+        isOpen={isAIChatOpen}
+        onToggle={() => setIsAIChatOpen(!isAIChatOpen)}
+        lessonContext={lessonContext}
+      />
     </div>
   );
 };
