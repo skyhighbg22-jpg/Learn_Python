@@ -117,11 +117,12 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
         });
       }
 
+      const finalXP = calculateFinalXP();
       await supabase
         .from('profiles')
         .update({
-          total_xp: profile.total_xp + lesson.xp_reward,
-          current_level: Math.floor((profile.total_xp + lesson.xp_reward) / 100) + 1,
+          total_xp: profile.total_xp + finalXP,
+          current_level: Math.floor((profile.total_xp + finalXP) / 100) + 1,
         })
         .eq('id', profile.id);
 
