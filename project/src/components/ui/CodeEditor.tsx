@@ -66,7 +66,9 @@ export const CodeEditor = ({
   fontSize = 14,
   skyTips = [],
   onHintUsed,
-  showTips = true
+  showTips = true,
+  showCodeQuality = true,
+  lessonContext
 }: CodeEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -75,6 +77,8 @@ export const CodeEditor = ({
   const [currentOutput, setCurrentOutput] = useState<string>('');
   const [isValid, setIsValid] = useState(true);
   const [showSkyTips, setShowSkyTips] = useState(true);
+  const [activeTab, setActiveTab] = useState<'tips' | 'quality'>('tips');
+  const [currentCode, setCurrentCode] = useState(value);
   const { resolvedTheme } = useTheme();
 
   // Initialize Monaco Editor
