@@ -147,47 +147,58 @@ Be warm, approachable, and use language that makes programming feel like a fun a
     // Add current message to history
     conversationHistory.push({ role: 'user', content: message })
 
-    // Try providers in order (Groq first since it's fastest and most affordable)
+    // 🎯 CUSTOM FALLBACK ORDER - You can change this order!
     let aiResponse = null
     let providerUsed = 'fallback'
 
-    // Try Groq first
-    if (GROQ_API_KEY && !aiResponse) {
-      try {
-        aiResponse = await callGroqAPI(GROQ_API_KEY, systemPrompt, conversationHistory)
-        providerUsed = 'Groq'
-      } catch (error) {
-        console.error('Groq API failed:', error)
+    const providerOrder = [
+      {
+        name: 'Groq',
+        key: GROQ_API_KEY,
+        callFunction: callGroqAPI,
+        priority: 1,
+        speed: 'Fastest',
+        cost: 'Very Affordable (~$0.40/1M tokens)'
+      },
+      {
+        name: 'OpenAI',
+        key: OPENAI_API_KEY,
+        callFunction: callOpenAIAPI,
+        priority: 2,
+        speed: 'Fast',
+        cost: 'Moderate (~$2.00/1M tokens)'
+      },
+      {
+        name: 'Google Gemini',
+        key: GEMINI_API_KEY,
+        callFunction: callGeminiAPI,
+        priority: 3,
+        speed: 'Fast',
+        cost: 'Free tier available'
+      },
+      {
+        name: 'Anthropic Claude',
+        key: ANTHROPIC_API_KEY,
+        callFunction: callAnthropicAPI,
+        priority: 4,
+        speed: 'Moderate',
+        cost: 'Premium (~$25/1M tokens)'
       }
-    }
+    ]
 
-    // Try Gemini as fallback
-    if (GEMINI_API_KEY && !aiResponse) {
-      try {
-        aiResponse = await callGeminiAPI(GEMINI_API_KEY, systemPrompt, conversationHistory)
-        providerUsed = 'Google Gemini'
-      } catch (error) {
-        console.error('Gemini API failed:', error)
-      }
-    }
-
-    // Try OpenAI as fallback
-    if (OPENAI_API_KEY && !aiResponse) {
-      try {
-        aiResponse = await callOpenAIAPI(OPENAI_API_KEY, systemPrompt, conversationHistory)
-        providerUsed = 'OpenAI'
-      } catch (error) {
-        console.error('OpenAI API failed:', error)
-      }
-    }
-
-    // Try Anthropic as final fallback
-    if (ANTHROPIC_API_KEY && !aiResponse) {
-      try {
-        aiResponse = await callAnthropicAPI(ANTHROPIC_API_KEY, systemPrompt, conversationHistory)
-        providerUsed = 'Anthropic Claude'
-      } catch (error) {
-        console.error('Anthropic API failed:', error)
+    // Try each provider in priority order
+    for (const provider of providerOrder) {
+      if (provider.key && !aiResponse) {
+        try {
+          console.log(`Trying ${provider.name} (Priority: ${provider.priority}, Speed: ${provider.speed}, Cost: ${provider.cost})`)
+          aiResponse = await provider.callFunction(provider.key, systemPrompt, conversationHistory)
+          providerUsed = provider.name
+          console.log(`✅ ${provider.name} succeeded!`)
+          break
+        } catch (error) {
+          console.error(`❌ ${provider.name} failed:`, error)
+          continue
+        }
       }
     }
 
