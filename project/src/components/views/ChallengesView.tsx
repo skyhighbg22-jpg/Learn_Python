@@ -201,8 +201,8 @@ export const ChallengesView = () => {
   }, []);
 
   // Start challenge
-  const startChallenge = async () => {
-    if (!todayChallenge || !profile?.id) return;
+  const startChallenge = async (challenge: ServiceDailyChallenge) => {
+    if (!challenge || !profile?.id) return;
 
     setIsStarting(true);
     try {
@@ -211,8 +211,8 @@ export const ChallengesView = () => {
         .from('daily_challenge_attempts')
         .insert({
           user_id: profile.id,
-          challenge_id: todayChallenge.id,
-          challenge_date: todayChallenge.date,
+          challenge_id: challenge.id,
+          challenge_date: new Date().toISOString().split('T')[0],
           score: 0,
           completed: false,
           attempts: 1,
@@ -226,7 +226,7 @@ export const ChallengesView = () => {
       addNotification({
         type: 'success',
         title: 'Challenge Started',
-        message: todayChallenge.title,
+        message: `${challenge.title} - ${challenge.difficulty}`,
         duration: 3000
       });
 
