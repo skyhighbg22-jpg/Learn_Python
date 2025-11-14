@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         username: `user_${userId.slice(0, 8)}`,
         display_name: 'New Learner',
         avatar_character: 'sky',
+        avatar_url: null,
         current_streak: 0,
         longest_streak: 0,
         total_xp: 0,
