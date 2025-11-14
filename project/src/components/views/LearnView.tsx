@@ -93,8 +93,58 @@ export const LearnView = () => {
       case 'code':
         return { icon: Code, color: 'text-primary-400', bgColor: 'bg-primary-500', label: 'Coding' };
       default:
-        return { icon: Sparkles, color: 'text-success-400', bgColor: 'bg-success-500', label: 'Lesson' };
+        return { icon: Sparkles, color: 'text-success-400', bgColor: 'bg-success-500', label: 'Traditional' };
     }
+  };
+
+  // Filter lessons by type
+  const filterLessons = (lessons: Lesson[]) => {
+    if (activeFilter === 'all') return lessons;
+
+    return lessons.filter(lesson => {
+      const type = lesson.lesson_type || 'multiple-choice';
+      switch (activeFilter) {
+        case 'traditional':
+          return type === 'multiple-choice' || type === null;
+        case 'coding':
+          return type === 'code';
+        case 'drag-drop':
+          return type === 'drag-drop';
+        case 'puzzle':
+          return type === 'puzzle';
+        case 'story':
+          return type === 'story';
+        default:
+          return true;
+      }
+    });
+  };
+
+  // Get filter counts
+  const getFilterCount = (filterType: string) => {
+    let count = 0;
+    Object.values(lessons).forEach(sectionLessons => {
+      const filtered = filterLessons(sectionLessons.filter(lesson => {
+        if (filterType === 'all') return true;
+        const type = lesson.lesson_type || 'multiple-choice';
+        switch (filterType) {
+          case 'traditional':
+            return type === 'multiple-choice' || type === null;
+          case 'coding':
+            return type === 'code';
+          case 'drag-drop':
+            return type === 'drag-drop';
+          case 'puzzle':
+            return type === 'puzzle';
+          case 'story':
+            return type === 'story';
+          default:
+            return true;
+        }
+      }));
+      count += filtered.length;
+    });
+    return count;
   };
 
   if (loading) {
