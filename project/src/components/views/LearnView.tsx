@@ -12,6 +12,7 @@ export const LearnView = () => {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
 
   useEffect(() => {
     loadContent();
