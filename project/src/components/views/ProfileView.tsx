@@ -19,6 +19,8 @@ export const ProfileView = () => {
   const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
   const [profileStats, setProfileStats] = useState<any>(null);
   const [showSocialShare, setShowSocialShare] = useState(false);
+  const [userRanking, setUserRanking] = useState<UserRanking | null>(null);
+  const [leagueUsers, setLeagueUsers] = useState<UserRanking[]>([]);
 
   // Handle auth loading state
   if (authLoading) {
