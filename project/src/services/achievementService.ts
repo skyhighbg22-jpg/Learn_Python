@@ -229,21 +229,25 @@ class AchievementService {
 
       if (existing) return false;
 
-      // Get achievement details for XP reward
+      // Get achievement details for XP reward and rarity
       const { data: achievement } = await supabase
         .from('achievements')
-        .select('xp_reward')
+        .select('xp_reward, rarity')
         .eq('id', achievementId)
         .single();
 
-      // Unlock achievement
+      // Unlock achievement with enhanced fields
       const { error } = await supabase
         .from('user_achievements')
         .insert({
           user_id: userId,
           achievement_id: achievementId,
           progress: 100,
-          unlocked_at: new Date().toISOString()
+          unlocked_at: new Date().toISOString(),
+          rarity: achievement?.rarity || 'common',
+          celebration_viewed: false,
+          shared_externally: false,
+          rewards_applied: false
         });
 
       if (error) throw error;
@@ -252,6 +256,9 @@ class AchievementService {
       if (achievement?.xp_reward) {
         await this.awardAchievementXP(userId, achievement.xp_reward);
       }
+
+      // Apply special rewards
+      await this.applySpecialRewards(userId, achievementId);
 
       return true;
     } catch (error) {
