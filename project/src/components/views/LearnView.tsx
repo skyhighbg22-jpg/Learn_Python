@@ -299,9 +299,15 @@ export const LearnView = () => {
 
         <div className="space-y-8">
           {sections.map((section, sectionIndex) => {
-            const sectionLessons = lessons[section.id] || [];
+            const allSectionLessons = lessons[section.id] || [];
+            const sectionLessons = filterLessons(allSectionLessons);
             const isUnlocked = profile && profile.total_xp >= section.unlock_requirement_xp;
             const completedInSection = sectionLessons.filter(lesson => getLessonStatus(lesson.id) === 'completed').length;
+
+            // Skip sections if no lessons match the filter
+            if (activeFilter !== 'all' && sectionLessons.length === 0) {
+              return null;
+            }
 
             return (
               <div
