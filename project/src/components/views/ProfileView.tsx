@@ -887,6 +887,7 @@ export const ProfileView = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
