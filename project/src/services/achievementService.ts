@@ -466,25 +466,49 @@ class AchievementService {
       const allAchievements = await this.getAllAchievements();
       const userAchievements = await this.getUserAchievements(userId);
 
-      // Calculate XP from achievements
+      // Calculate XP and points from achievements
       const achievementIds = userAchievements.map(ua => ua.achievement_id);
       const { data: achievementDetails } = await supabase
         .from('achievements')
-        .select('xp_reward, category')
+        .select('xp_reward, category, points, rarity, secret, special_rewards')
         .in('id', achievementIds);
 
       const totalXP = achievementDetails?.reduce((sum, a) => sum + (a.xp_reward || 0), 0) || 0;
+      const totalPoints = achievementDetails?.reduce((sum, a) => sum + (a.points || 0), 0) || 0;
 
-      // Group by category
+      // Group by rarity and category
+      const byRarity: Record<string, { total: number; unlocked: number; points: number }> = {};
       const byCategory: Record<string, { total: number; unlocked: number }> = {};
+      let secretUnlocked = 0;
+      const allRewards: Reward[] = [];
+
       allAchievements.forEach(achievement => {
+        // Group by rarity
+        if (!byRarity[achievement.rarity]) {
+          byRarity[achievement.rarity] = { total: 0, unlocked: 0, points: 0 };
+        }
+        byRarity[achievement.rarity].total++;
+
+        // Group by category
         if (!byCategory[achievement.category]) {
           byCategory[achievement.category] = { total: 0, unlocked: 0 };
         }
         byCategory[achievement.category].total++;
 
-        if (userAchievements.find(ua => ua.achievement_id === achievement.id)) {
+        const userAchievement = userAchievements.find(ua => ua.achievement_id === achievement.id);
+        if (userAchievement) {
+          byRarity[achievement.rarity].unlocked++;
+          byRarity[achievement.rarity].points += achievement.points || 0;
           byCategory[achievement.category].unlocked++;
+
+          if (achievement.secret) {
+            secretUnlocked++;
+          }
+
+          // Collect rewards from this achievement
+          if (achievement.special_rewards && Array.isArray(achievement.special_rewards)) {
+            allRewards.push(...achievement.special_rewards);
+          }
         }
       });
 
@@ -493,7 +517,11 @@ class AchievementService {
         unlocked: userAchievements.length,
         completion_rate: Math.floor((userAchievements.length / allAchievements.length) * 100),
         xp_from_achievements: totalXP,
-        by_category: byCategory
+        total_points: totalPoints,
+        by_rarity: byRarity,
+        by_category: byCategory,
+        secret_unlocked: secretUnlocked,
+        rewards_claimed: allRewards
       };
     } catch (error) {
       console.error('Error fetching achievement stats:', error);
