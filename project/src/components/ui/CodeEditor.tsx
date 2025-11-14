@@ -60,7 +60,10 @@ export const CodeEditor = ({
   hint,
   expectedOutput,
   showLineNumbers = true,
-  fontSize = 14
+  fontSize = 14,
+  skyTips = [],
+  onHintUsed,
+  showTips = true
 }: CodeEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
