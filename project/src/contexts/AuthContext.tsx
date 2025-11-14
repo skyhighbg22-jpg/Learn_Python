@@ -354,6 +354,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateProfileAvatar = async (avatarUrl: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating avatar:', error);
+        throw error;
+      }
+
+      // Update local profile state
+      setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+    } catch (error) {
+      console.error('Failed to update avatar:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
