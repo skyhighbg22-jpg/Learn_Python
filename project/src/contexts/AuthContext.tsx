@@ -158,6 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       full_name: fullName || username,
       display_name: fullName || username,
       avatar_character: 'sky',
+      avatar_url: null,
       email_confirmed: false,
       signup_method: 'email',
     });
