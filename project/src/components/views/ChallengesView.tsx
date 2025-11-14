@@ -45,8 +45,8 @@ export const ChallengesView = () => {
       console.log('Notification:', notification);
     };
   }
-  const [todayChallenge, setTodayChallenge] = useState<DailyChallenge | null>(null);
-  const [completed, setCompleted] = useState(false);
+  const [todayChallenges, setTodayChallenges] = useState<ServiceDailyChallenge[]>([]);
+  const [completedChallenges, setCompletedChallenges] = useState<Set<string>>(new Set());
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [completionData, setCompletionData] = useState<ChallengeCompletion | null>(null);
@@ -56,6 +56,8 @@ export const ChallengesView = () => {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [streakData, setStreakData] = useState<any>(null);
+  const [streakBonus, setStreakBonus] = useState(0);
 
   // Helper function for exponential backoff retry
   const retryWithBackoff = async <T,>(
