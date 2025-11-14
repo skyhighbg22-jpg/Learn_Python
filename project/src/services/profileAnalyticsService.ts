@@ -297,7 +297,7 @@ class ProfileAnalyticsService {
 
   // Helper method to calculate progress percentage
   calculateProgress(completed: number, total: number): number {
-    return Math.round((completed / total)) * 100);
+    return Math.round((completed / total) * 100);
   }
 }
 
