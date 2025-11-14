@@ -6,6 +6,7 @@ import { CodeEditor } from './CodeEditor';
 import { DragDropLesson } from './DragDropLesson';
 import { PuzzleGameLesson } from './PuzzleGameLesson';
 import { StoryLesson } from './StoryLesson';
+import { ProgressiveHints } from './ui/ProgressiveHints';
 
 type LessonModalProps = {
   lesson: Lesson;
