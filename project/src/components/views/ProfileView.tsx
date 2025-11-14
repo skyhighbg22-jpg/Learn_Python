@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3, Calendar, Activity, Share2, BarChart3, Crown, Gift, Sparkles, Facebook, Twitter, Linkedin, ChevronRight } from 'lucide-react';
+import { Flame, Zap, Trophy, Target, Medal, Award, Star, Lock, TrendingUp, Grid3X3, Calendar, Activity, Share2, BarChart3, Crown, Gift, Sparkles, Facebook, Twitter, Linkedin, ChevronRight, X } from 'lucide-react';
 import AchievementService, { AchievementProgress } from '../../services/achievementService';
 import { ProfilePictureUpload } from '../ui/ProfilePictureUpload';
 import { SkillProgress } from '../ui/SkillProgress';
