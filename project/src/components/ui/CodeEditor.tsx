@@ -19,6 +19,8 @@ interface CodeEditorProps {
   skyTips?: string[];
   onHintUsed?: (hintIndex: number) => void;
   showTips?: boolean;
+  showCodeQuality?: boolean;
+  lessonContext?: string;
 }
 
 // Default Monaco Python language definition
