@@ -78,51 +78,51 @@ export const ChallengesView = () => {
     throw new Error('Max retries exceeded');
   };
 
-  // Load today's challenge
+  // Load today's challenges
   const loadTodayChallenge = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
       setError(null);
-      const today = new Date().toISOString().split('T')[0];
+      setLoading(true);
 
-      // Load challenge data with retry
-      const { data: challengeData, error: challengeError } = await retryWithBackoff(async () => {
-        return await supabase
-          .from('daily_challenges')
-          .select('*')
-          .eq('date', today)
-          .maybeSingle();
-      });
+      // Load challenges using new service
+      const challenges = await dailyChallengeService.getTodayChallenges();
+      setTodayChallenges(challenges);
 
-      if (challengeError) throw challengeError;
+      // Load user streak data
+      const streak = await dailyChallengeService.getUserStreakData(profile.id);
+      setStreakData(streak);
 
-      setTodayChallenge(challengeData);
+      // Calculate streak bonus
+      const bonus = await dailyChallengeService.calculateStreakBonus(profile.id);
+      setStreakBonus(bonus);
 
-      if (challengeData) {
-        // Check completion status with retry
-        const { data: completionData, error: completionError } = await retryWithBackoff(async () => {
+      // Load completion status for today's challenges
+      const completions = new Set<string>();
+      for (const challenge of challenges) {
+        const { data: completionData } = await retryWithBackoff(async () => {
           return await supabase
             .from('daily_challenge_attempts')
             .select('*')
             .eq('user_id', profile.id)
-            .eq('challenge_id', challengeData.id)
+            .eq('challenge_id', challenge.id)
             .eq('completed', true)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
         });
 
-        if (completionError) throw completionError;
-
-        setCompletionData(completionData);
-        setCompleted(!!completionData);
+        if (completionData) {
+          completions.add(challenge.id);
+        }
       }
 
+      setCompletedChallenges(completions);
       setRetryCount(0);
     } catch (error: any) {
-      console.error('Error loading today\'s challenge:', error);
-      setError('Failed to load challenge. Please try again.');
+      console.error('Error loading today\'s challenges:', error);
+      setError('Failed to load challenges. Please try again.');
       setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
