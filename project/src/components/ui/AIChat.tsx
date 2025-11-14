@@ -91,10 +91,11 @@ export const AIChat: React.FC<AIChatProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      setConnectionStatus('connected');
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -114,18 +115,32 @@ export const AIChat: React.FC<AIChatProps> = ({
 
     } catch (error) {
       console.error('Error sending message:', error);
+      setConnectionStatus('error');
+      setShowConnectionError(true);
 
-      // Add error message
-      const errorMessage: ChatMessage = {
+      // Add contextual error message
+      let errorMessage = "I'm having trouble connecting right now! 🌟 Could you try asking your question again in a moment?";
+
+      if (error instanceof Error) {
+        if (error.message.includes('401')) {
+          errorMessage = "There's an authentication issue with the AI service. Please check your API keys configuration.";
+        } else if (error.message.includes('429')) {
+          errorMessage = "The AI service is busy right now! Please try again in a moment.";
+        } else if (error.message.includes('500')) {
+          errorMessage = "The AI service is experiencing technical difficulties. Please try again later.";
+        }
+      }
+
+      const errorChatMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I'm having trouble connecting right now! 🌟 Could you try asking your question again in a moment? I'm excited to help you learn Python!",
+        content: errorMessage,
         timestamp: new Date(),
         provider: 'fallback',
         model: 'error-handling'
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorChatMessage]);
       setProviderInfo({
         provider: 'fallback',
         model: 'error-handling'
