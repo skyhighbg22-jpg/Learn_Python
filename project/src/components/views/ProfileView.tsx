@@ -108,6 +108,14 @@ export const ProfileView = () => {
         setProfileStats(analytics);
         setUserRanking(userRanking);
         setLeagueUsers(leaderboardData);
+        setSpecialRewards(rewards);
+        setUnviewedCelebrations(celebrations);
+
+        // Show first unviewed celebration
+        if (celebrations.length > 0) {
+          setCelebrationAchievement(celebrations[0]);
+          setShowCelebration(true);
+        }
       } catch (error) {
         console.error('Error loading profile data:', error);
       } finally {
