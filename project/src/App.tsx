@@ -14,6 +14,21 @@ import { AICharacter } from './components/ui/AICharacter';
 const MainApp = () => {
   const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState('learn');
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [lessonContext, setLessonContext] = useState<string>();
+
+  // Handle keyboard shortcut for AI chat (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsAIChatOpen(!isAIChatOpen);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isAIChatOpen]);
 
   if (loading) {
     return (
