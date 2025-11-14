@@ -7,6 +7,7 @@ import { DragDropLesson } from './DragDropLesson';
 import { PuzzleGameLesson } from './PuzzleGameLesson';
 import { StoryLesson } from './StoryLesson';
 import { ProgressiveHints } from './ui/ProgressiveHints';
+import { SkyTips } from './ui/SkyTips';
 
 type LessonModalProps = {
   lesson: Lesson;
