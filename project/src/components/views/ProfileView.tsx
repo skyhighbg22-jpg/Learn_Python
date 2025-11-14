@@ -248,7 +248,128 @@ export const ProfileView = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
+    <>
+      {/* Achievement Celebration Modal */}
+      {showCelebration && celebrationAchievement && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 animate-in">
+          <div className="bg-slate-900 rounded-2xl p-8 max-w-lg w-full mx-4 relative border-2 border-yellow-500 shadow-2xl shadow-yellow-500/20">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowCelebration(false);
+                handleMarkCelebrationViewed(celebrationAchievement.id);
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Celebration Header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center animate-pulse">
+                <Crown className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-2">Achievement Unlocked!</h2>
+              <div className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                celebrationAchievement.rarity === 'legendary' ? 'bg-yellow-500 text-white' :
+                celebrationAchievement.rarity === 'epic' ? 'bg-purple-500 text-white' :
+                celebrationAchievement.rarity === 'rare' ? 'bg-blue-500 text-white' :
+                'bg-gray-500 text-white'
+              }`}>
+                {celebrationAchievement.rarity.toUpperCase()}
+              </div>
+            </div>
+
+            {/* Achievement Details */}
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-2">{celebrationAchievement.icon}</div>
+              <h3 className="text-xl font-bold text-white mb-2">{celebrationAchievement.title}</h3>
+              <p className="text-slate-300">{celebrationAchievement.description}</p>
+            </div>
+
+            {/* Rewards Section */}
+            {celebrationAchievement.special_rewards && celebrationAchievement.special_rewards.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-yellow-400" />
+                  Special Rewards Unlocked
+                </h4>
+                <div className="space-y-2">
+                  {celebrationAchievement.special_rewards.map((reward: any, index: number) => (
+                    <div key={index} className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getRarityGradient(reward.rarity)} flex items-center justify-center`}>
+                          {reward.type === 'avatar' && <span className="text-white text-lg">{reward.value}</span>}
+                          {reward.type === 'title' && <Star className="w-5 h-5 text-white" />}
+                          {reward.type === 'theme' && <Sparkles className="w-5 h-5 text-white" />}
+                          {reward.type === 'badge' && <Award className="w-5 h-5 text-white" />}
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{reward.description}</p>
+                          <p className="text-slate-400 text-sm capitalize">{reward.type}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* XP Reward */}
+            {celebrationAchievement.xp_reward > 0 && (
+              <div className="mb-6 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-full">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                  <span className="text-yellow-400 font-bold">+{celebrationAchievement.xp_reward} XP</span>
+                </div>
+              </div>
+            )}
+
+            {/* Share Options */}
+            <div className="flex flex-col gap-3">
+              <h4 className="text-white font-semibold text-center">Share Your Achievement</h4>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => handleShareAchievement(celebrationAchievement, 'twitter')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
+                >
+                  <Twitter className="w-4 h-4" />
+                  Twitter
+                </button>
+                <button
+                  onClick={() => handleShareAchievement(celebrationAchievement, 'linkedin')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  LinkedIn
+                </button>
+                <button
+                  onClick={() => handleShareAchievement(celebrationAchievement, 'facebook')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                >
+                  <Facebook className="w-4 h-4" />
+                  Facebook
+                </button>
+              </div>
+            </div>
+
+            {/* Continue Button */}
+            <button
+              onClick={() => {
+                setShowCelebration(false);
+                handleMarkCelebrationViewed(celebrationAchievement.id);
+              }}
+              className="w-full mt-6 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+            >
+              Continue Your Journey
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto p-8">
       <div className="bg-slate-800 rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-6 mb-6">
           <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full overflow-hidden flex items-center justify-center">
