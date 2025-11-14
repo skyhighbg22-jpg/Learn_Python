@@ -371,14 +371,25 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
           )}
 
           {currentContent.type === 'code' && (
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
               <CodeEditor
                 value={userCode}
                 onChange={setUserCode}
                 initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
               />
+
+              {/* Progressive Hints System */}
+              {currentContent.hints && currentContent.hints.length > 0 && (
+                <ProgressiveHints
+                  hints={currentContent.hints}
+                  onHintRevealed={handleHintRevealed}
+                  xpReward={lesson.xp_reward}
+                  revealedHints={revealedHints}
+                />
+              )}
+
               {currentContent.solution && (
-                <div className="mt-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
+                <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
                   <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
                   <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
                 </div>
