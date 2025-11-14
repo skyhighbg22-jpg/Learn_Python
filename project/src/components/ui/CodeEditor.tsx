@@ -71,6 +71,7 @@ export const CodeEditor = ({
   const [showOutput, setShowOutput] = useState(false);
   const [currentOutput, setCurrentOutput] = useState<string>('');
   const [isValid, setIsValid] = useState(true);
+  const [showSkyTips, setShowSkyTips] = useState(true);
   const { resolvedTheme } = useTheme();
 
   // Initialize Monaco Editor
