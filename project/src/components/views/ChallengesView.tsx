@@ -362,89 +362,123 @@ export const ChallengesView = () => {
                   <Calendar className="text-white" size={32} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Today's Challenge</h3>
+                  <h3 className="text-2xl font-bold text-white">Daily Challenges</h3>
                   <p className="text-blue-300 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                  <div className="flex items-center gap-2 mt-2 text-slate-400 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>Time remaining: {timeLeft}</span>
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Clock className="w-4 h-4" />
+                      <span>Time left: {timeLeft}</span>
+                    </div>
+                    {currentStreak > 0 && (
+                      <div className="flex items-center gap-2 text-orange-400 text-sm">
+                        <Flame className="w-4 h-4" />
+                        <span>{currentStreak} day streak! 🔥</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              {completed && (
+              {todayCompleted === todayChallenges.length && todayChallenges.length > 0 && (
                 <div className="bg-green-500 text-white px-4 py-2 rounded-full font-semibold flex items-center gap-2">
                   <CheckCircle size={18} />
-                  Completed
+                  All Completed!
                 </div>
               )}
             </div>
 
-            {todayChallenge ? (
+            {todayChallenges.length > 0 ? (
               <div className="space-y-6">
-                <div>
-                  <h4 className="text-xl font-semibold text-white mb-3">
-                    {todayChallenge.title}
-                  </h4>
-                  <p className="text-slate-300 mb-4 text-lg">{todayChallenge.description}</p>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <span className={`px-4 py-2 rounded-full font-semibold capitalize ${
-                      todayChallenge.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                      todayChallenge.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {todayChallenge.difficulty}
-                    </span>
-                    <span className="text-yellow-400 font-semibold flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full">
-                      <Zap size={18} />
-                      +{todayChallenge.xp_reward} XP
-                    </span>
-                    {completionData && (
-                      <span className="text-blue-400 font-semibold flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-full">
-                        <Star size={18} />
-                        Score: {completionData.score}
-                      </span>
-                    )}
-                  </div>
+                {/* Challenge Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {todayChallenges.map((challenge, index) => {
+                    const isCompleted = completedChallenges.has(challenge.id);
+                    const difficultyColor = dailyChallengeService.getDifficultyColor(challenge.difficulty);
+                    const timeEstimate = dailyChallengeService.getTimeEstimateText(challenge.estimated_minutes);
+
+                    return (
+                      <div key={challenge.id} className={`relative bg-slate-800 rounded-xl p-6 border ${
+                        isCompleted ? 'border-green-600 bg-green-900/20' : 'border-slate-600 hover:border-slate-500'
+                      } transition-all duration-200 hover:transform hover:scale-105`}>
+                        {isCompleted && (
+                          <div className="absolute top-3 right-3">
+                            <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                              <CheckCircle size={14} />
+                              Done
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between mb-4">
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${difficultyColor}`}>
+                            {dailyChallengeService.getDifficultyLabel(challenge.difficulty)}
+                          </div>
+                          <div className="text-yellow-400 font-semibold flex items-center gap-1 bg-yellow-500/20 px-3 py-1 rounded-full">
+                            <Zap size={14} />
+                            +{challenge.xp_reward} XP
+                          </div>
+                        </div>
+
+                        <h4 className="text-lg font-semibold text-white mb-3">
+                          {challenge.title}
+                        </h4>
+                        <p className="text-slate-300 text-sm mb-4 leading-relaxed">{challenge.description}</p>
+
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2 text-slate-400 text-sm">
+                            <Clock size={14} />
+                            <span>{timeEstimate}</span>
+                          </div>
+                          <div className="text-blue-400 text-sm font-medium">
+                            {challenge.challenge_type}
+                          </div>
+                        </div>
+
+                        {!isCompleted ? (
+                          <button
+                            onClick={() => startChallenge(challenge)}
+                            disabled={isStarting}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+                          >
+                            {isStarting ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Starting...
+                              </>
+                            ) : (
+                              <>
+                                <Play size={16} />
+                                Start Challenge
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="text-green-400" size={16} />
+                              <span className="text-green-400 font-semibold">Completed</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {!completed ? (
-                  <div className="flex gap-4">
-                    <button
-                      onClick={startChallenge}
-                      disabled={isStarting}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"
-                    >
-                      {isStarting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Starting...
-                        </>
-                      ) : (
-                        <>
-                          <Play size={20} />
-                          Start Challenge
-                        </>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CheckCircle className="text-green-400" size={20} />
-                      <span className="text-green-400 font-semibold">Challenge Completed!</span>
+                {/* Streak Bonus Section */}
+                {streakBonus > 0 && (
+                  <div className="bg-gradient-to-r from-orange-900/50 to-red-900/50 rounded-xl p-6 border border-orange-600">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                        <Flame className="text-white" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">Streak Bonus Unlocked! 🎉</h3>
+                        <p className="text-orange-300">You've completed challenges for 7 days straight!</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-slate-400">Score:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.score}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">Time:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.completion_time}s</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">Attempts:</span>
-                        <span className="text-white ml-2 font-semibold">{completionData?.attempts}</span>
-                      </div>
+                    <div className="bg-orange-500/20 border border-orange-500 border-opacity-30 rounded-lg p-4">
+                      <p className="text-orange-100 font-semibold text-lg">+{streakBonus} XP Bonus!</p>
+                      <p className="text-orange-300 text-sm mt-1">Keep the streak going for more rewards!</p>
                     </div>
                   </div>
                 )}
@@ -452,8 +486,8 @@ export const ChallengesView = () => {
             ) : (
               <div className="text-center py-12">
                 <Target className="text-slate-600 mx-auto mb-4" size={64} />
-                <p className="text-slate-400 text-lg">No challenge available today</p>
-                <p className="text-slate-500 text-sm mt-2">Check back tomorrow for a new challenge!</p>
+                <p className="text-slate-400 text-lg">No challenges available today</p>
+                <p className="text-slate-500 text-sm mt-2">Check back tomorrow for new challenges!</p>
               </div>
             )}
           </div>
