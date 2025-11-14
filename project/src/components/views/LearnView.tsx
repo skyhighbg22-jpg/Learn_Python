@@ -21,6 +21,12 @@ export const LearnView = () => {
     loadContent();
   }, []);
 
+  useEffect(() => {
+    if (profile?.id) {
+      loadLearningPaths();
+    }
+  }, [profile]);
+
   const loadContent = async () => {
     try {
       setError(null);
