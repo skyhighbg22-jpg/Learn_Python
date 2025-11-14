@@ -488,6 +488,7 @@ export const LearnView = () => {
 
             return (
               <div
+                id={`section-${section.id}`}
                 key={section.id}
                 className={`card-enhanced relative overflow-hidden animate-in animate-delay-${sectionIndex * 100}`}
                 style={{ animationDelay: `${sectionIndex * 100}ms` }}
