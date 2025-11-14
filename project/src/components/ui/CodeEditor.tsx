@@ -247,8 +247,18 @@ if __name__ == '__main__':
   const clearEditor = () => {
     if (editorInstanceRef.current) {
       editorInstanceRef.current.setValue('');
+      setCurrentCode('');
       setIsValid(true);
       resetOutput();
+    }
+  };
+
+  // Handle auto-fix from code quality panel
+  const handleAutoFix = (fixedCode: string) => {
+    if (editorInstanceRef.current && onChange) {
+      editorInstanceRef.current.setValue(fixedCode);
+      setCurrentCode(fixedCode);
+      onChange(fixedCode);
     }
   };
 
