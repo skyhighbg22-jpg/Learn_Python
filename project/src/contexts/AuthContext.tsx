@@ -388,6 +388,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signInWithApple,
         signOut,
         refreshProfile,
+        updateProfileAvatar,
         resendVerificationEmail,
         resetPassword,
       }}
