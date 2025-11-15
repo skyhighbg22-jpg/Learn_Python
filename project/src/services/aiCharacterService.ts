@@ -129,12 +129,28 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
       // Check if this is a coding-related request
       const lowerMessage = userMessage.toLowerCase();
 
-      // Code generation requests
+      // Code generation requests - enhanced pattern matching
       if (lowerMessage.includes('make a') || lowerMessage.includes('create a') || lowerMessage.includes('build a') ||
-          lowerMessage.includes('calculator') || lowerMessage.includes('function') || lowerMessage.includes('code')) {
+          lowerMessage.includes('calculator') || lowerMessage.includes('function') || lowerMessage.includes('code') ||
+          lowerMessage.includes('write') || lowerMessage.includes('implement') || lowerMessage.includes('develop')) {
 
-        const codePrompt = `Please help me ${userMessage}. Provide working Python code with explanations.`;
-        return await groqService.generateCode(codePrompt, context.lessonContext);
+        let enhancedPrompt = userMessage;
+
+        // Special handling for calculator requests
+        if (lowerMessage.includes('calculator')) {
+          enhancedPrompt = `Create a complete Python calculator application with the following features:
+          - Command-line interface that takes user input
+          - Basic arithmetic operations: addition (+), subtraction (-), multiplication (*), division (/)
+          - Proper error handling for division by zero
+          - Clear input/output formatting
+          - Ability to perform multiple calculations
+          - Exit option to quit the program
+
+          The code should be well-commented, user-friendly, and handle edge cases gracefully.
+          Please provide the complete working code and explain how it works step by step.`;
+        }
+
+        return await groqService.generateCode(enhancedPrompt, context.lessonContext);
       }
 
       // Debugging requests
