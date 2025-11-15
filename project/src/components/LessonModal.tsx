@@ -177,7 +177,9 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   };
 
   // Enhanced answer check using LessonValidation for traditional lessons
-  const handleEnhancedCheckAnswer = async (validationInstance: any) => {
+  const handleEnhancedCheckAnswer = async () => {
+    if (!validationInstance) return;
+
     let userInput;
 
     if (currentContent.type === 'multiple-choice') {
@@ -207,6 +209,16 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
       });
     }
   };
+
+  // Initialize validation instance when lesson or step changes
+  useEffect(() => {
+    // Reset validation state for new step
+    setFeedback(null);
+    setSelectedAnswer('');
+    setUserCode('');
+    setRevealedHints([]);
+    setValidationInstance(null);
+  }, [currentStep, lesson.id]);
 
   // Get lesson type icon and color
   const getLessonTypeInfo = (type: string) => {
