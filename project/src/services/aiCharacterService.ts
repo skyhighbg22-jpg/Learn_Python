@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 interface ConversationMessage {
   id: string;
   type: 'user' | 'sky';
