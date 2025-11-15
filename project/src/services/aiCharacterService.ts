@@ -351,8 +351,9 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
     }
   }
 
-  // Rate limiting helper
+  // Rate limiting and message variety helpers
   private lastRequestTime = new Map<string, number>();
+  private lastWelcomeMessage = new Map<string, string>();
   private readonly RATE_LIMIT_MS = 1000; // 1 second between requests
 
   private checkRateLimit(userId: string): boolean {
@@ -365,6 +366,50 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
     this.lastRequestTime.set(userId, now);
     return true;
+  }
+
+  private shouldGenerateNewWelcome(userId: string, newMessage: string): boolean {
+    const lastMessage = this.lastWelcomeMessage.get(userId);
+
+    // If no previous message, definitely generate new one
+    if (!lastMessage) {
+      this.lastWelcomeMessage.set(userId, newMessage);
+      return true;
+    }
+
+    // If the message is too similar to the last one, generate a new one
+    const similarity = this.calculateMessageSimilarity(lastMessage, newMessage);
+    if (similarity > 0.8) {
+      // Messages are too similar, return false to trigger regeneration
+      return false;
+    }
+
+    // Store the new message and allow it
+    this.lastWelcomeMessage.set(userId, newMessage);
+    return true;
+  }
+
+  private calculateMessageSimilarity(msg1: string, msg2: string): number {
+    // Simple similarity check - compare key metrics
+    const extractNumbers = (text: string) => {
+      const numbers = text.match(/\d+/g);
+      return numbers ? numbers.join(',') : '';
+    };
+
+    const nums1 = extractNumbers(msg1);
+    const nums2 = extractNumbers(msg2);
+
+    // If both messages have the same numbers (streak, XP, level), they're likely very similar
+    if (nums1 === nums2 && nums1.length > 0) {
+      return 0.9;
+    }
+
+    // Basic text similarity
+    const words1 = msg1.toLowerCase().split(/\s+/);
+    const words2 = msg2.toLowerCase().split(/\s+/);
+    const commonWords = words1.filter(word => words2.includes(word));
+
+    return commonWords.length / Math.max(words1.length, words2.length);
   }
 }
 
