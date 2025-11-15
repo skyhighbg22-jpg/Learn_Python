@@ -1,5 +1,5 @@
 // Test script to verify Groq API is working
-const GROQ_API_KEY = 'gsk_9vL7n2r4p8xKqJ8Hd5W3mWGdyB3FZyYcL2hP4q1QXrD';
+const GROQ_API_KEY = 'gsk_P2d4s8t5xKj8Hd5W3mWGdyB3FZyYcL2hP4q1QXrD8nZ9s';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 async function testGroqAPI() {
