@@ -43,11 +43,11 @@ export const AICharacter: React.FC<AICharacterProps> = ({
   };
 
   const initializeConversation = async () => {
+    if (!user) return;
+
     setIsLoading(true);
     try {
-      // For now, use a mock user ID - in production this comes from auth
-      const userId = 'demo_user';
-      const newConversation = await aiCharacterService.initializeConversation(userId, lessonContext);
+      const newConversation = await aiCharacterService.initializeConversation(user.id, lessonContext);
       setConversation(newConversation);
     } catch (error) {
       console.error('Failed to initialize conversation:', error);
