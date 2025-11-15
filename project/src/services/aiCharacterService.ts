@@ -213,13 +213,68 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
   }
 
   private async getUserProgress(userId: string): Promise<any> {
-    // This would integrate with the actual user progress system
-    return {
-      totalXP: 150,
-      currentStreak: 3,
-      completedLessons: 8,
-      currentLevel: 1
-    };
+    try {
+      // Fetch actual user profile data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('total_xp, current_streak, current_level, longest_streak')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile for AI:', profileError);
+        // Return default values if profile fetch fails
+        return {
+          totalXP: 0,
+          currentStreak: 0,
+          completedLessons: 0,
+          currentLevel: 1,
+          longestStreak: 0
+        };
+      }
+
+      // Fetch completed lessons count
+      const { count, error: countError } = await supabase
+        .from('user_lesson_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'completed');
+
+      const completedLessons = countError ? 0 : count || 0;
+
+      // Fetch recent achievements for contextual messages
+      const { data: achievements, error: achievementError } = await supabase
+        .from('user_achievements')
+        .select('achievement_id, unlocked_at')
+        .eq('user_id', userId)
+        .order('unlocked_at', { ascending: false })
+        .limit(5);
+
+      const recentAchievements = achievementError ? [] : achievements || [];
+
+      return {
+        totalXP: profile.total_xp || 0,
+        currentStreak: profile.current_streak || 0,
+        completedLessons,
+        currentLevel: profile.current_level || 1,
+        longestStreak: profile.longest_streak || 0,
+        recentAchievements,
+        hasData: true
+      };
+
+    } catch (error) {
+      console.error('Error in getUserProgress:', error);
+      // Return safe defaults
+      return {
+        totalXP: 0,
+        currentStreak: 0,
+        completedLessons: 0,
+        currentLevel: 1,
+        longestStreak: 0,
+        recentAchievements: [],
+        hasData: false
+      };
+    }
   }
 
   // Rate limiting helper
