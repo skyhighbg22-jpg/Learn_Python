@@ -4,7 +4,7 @@ import { ProfilePictureUpload } from './ui/ProfilePictureUpload';
 import { useEffect, useState } from 'react';
 
 export const Header = () => {
-  const { profile } = useAuth();
+  const { profile, updateProfileAvatar } = useAuth();
   const [animatedStats, setAnimatedStats] = useState({
     streak: 0,
     hearts: 5,
