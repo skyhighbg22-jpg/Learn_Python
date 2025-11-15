@@ -72,7 +72,7 @@ Your mission: Make Python learning fun, accessible, and rewarding! Always end wi
             'Authorization': `Bearer ${GROQ_API_KEY}`,
           },
           body: JSON.stringify({
-            model: 'llama-3.1-8b-instant', // Fast, free model
+            model: 'llama3-70b-8192', // More capable model
             messages: messages,
             temperature: 0.7,
             max_tokens: 1500, // Increased for longer responses
