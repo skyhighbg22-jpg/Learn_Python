@@ -350,10 +350,10 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
     );
   }
 
-  // Traditional lesson modal (multiple-choice and code)
+  // Traditional lesson modal (multiple-choice and code) with LessonValidation integration
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="glass rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-in animate-scale-in">
+      <div className="glass rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-in animate-scale-in">
         {/* Header with enhanced styling */}
         <div className="sticky top-0 glass border-b border-slate-700 p-6 flex items-center justify-between z-10">
           <div className="flex-1">
@@ -408,99 +408,92 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
             <p className="text-white text-lg leading-relaxed animate-in animate-slide-in">{currentContent.question}</p>
           </div>
 
-          {currentContent.type === 'multiple-choice' && currentContent.options && (
-            <div className="space-y-3 mb-6">
-              {currentContent.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedAnswer(option)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all btn-enhanced ${
-                    selectedAnswer === option
-                      ? 'border-primary-500 bg-primary-500 bg-opacity-20 text-primary-400'
-                      : 'border-slate-600 bg-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-600'
-                  } animate-in animate-delay-${index * 100}`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <span className="font-medium">Option {String.fromCharCode(65 + index)}:</span> {option}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* LessonValidation Integration */}
+          <LessonValidation
+            lessonId={lesson.id}
+            lessonType={lessonType === 'multiple-choice' ? 'multiple_choice' : 'code'}
+            lessonData={{
+              ...lesson,
+              currentStep,
+              currentContent
+            }}
+            onComplete={handleValidationComplete}
+            onProgress={handleValidationProgress}
+          >
+            {(validationInstance: any) => (
+              <div className="space-y-6">
+                {/* Multiple Choice Questions */}
+                {currentContent.type === 'multiple-choice' && currentContent.options && (
+                  <div className="space-y-3">
+                    {currentContent.options.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedAnswer(option)}
+                        className={`w-full text-left p-4 rounded-lg border-2 transition-all btn-enhanced ${
+                          selectedAnswer === option
+                            ? 'border-primary-500 bg-primary-500 bg-opacity-20 text-primary-400'
+                            : 'border-slate-600 bg-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-600'
+                        } animate-in animate-delay-${index * 100}`}
+                        style={{ animationDelay: `${index * 100}ms` }}
+                        disabled={lessonCompleted}
+                      >
+                        <span className="font-medium">Option {String.fromCharCode(65 + index)}:</span> {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-          {currentContent.type === 'code' && (
-            <div className="mb-6 space-y-4">
-              <CodeEditor
-                value={userCode}
-                onChange={setUserCode}
-                initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
-              />
+                {/* Code Editor */}
+                {currentContent.type === 'code' && (
+                  <div className="space-y-4">
+                    <CodeEditor
+                      value={userCode}
+                      onChange={setUserCode}
+                      initialCode={currentContent.starterCode || currentContent.code || '# Write your code here\n'}
+                      disabled={lessonCompleted}
+                    />
 
-              {/* Progressive Hints System */}
-              {currentContent.hints && currentContent.hints.length > 0 && (
-                <ProgressiveHints
-                  hints={currentContent.hints}
-                  onHintRevealed={handleHintRevealed}
-                  xpReward={lesson.xp_reward}
-                  revealedHints={revealedHints}
-                />
-              )}
+                    {currentContent.solution && (
+                      <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                        <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
+                        <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {currentContent.solution && (
-                <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
-                  <p className="text-slate-400 text-sm mb-1">Hint: Compare your solution with this approach:</p>
-                  <pre className="text-xs text-slate-300 overflow-x-auto">{currentContent.solution}</pre>
+                {/* LessonValidation UI */}
+                {validationInstance.renderValidationUI()}
+
+                {/* Enhanced Action Buttons */}
+                <div className="flex gap-3">
+                  {!validationInstance.validationState.isCorrect && !lessonCompleted && (
+                    <button
+                      onClick={() => handleEnhancedCheckAnswer(validationInstance)}
+                      disabled={
+                        (currentContent.type === 'multiple-choice' && !selectedAnswer) ||
+                        (currentContent.type === 'code' && !userCode.trim()) ||
+                        validationInstance.validationState.validating
+                      }
+                      className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {validationInstance.validationState.validating ? 'Checking...' : 'Check Answer'}
+                    </button>
+                  )}
+
+                  {validationInstance.validationState.isCorrect && (
+                    <button
+                      onClick={handleNext}
+                      disabled={isCompleting}
+                      className="flex-1 btn-success disabled:opacity-50"
+                    >
+                      {isCompleting ? 'Completing...' : isLastStep ? 'Complete Lesson' : 'Next Step'}
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
-
-          {feedback && (
-            <div
-              className={`flex items-center gap-3 p-4 rounded-lg mb-6 animate-in animate-scale-in ${
-                feedback.correct
-                  ? 'bg-success-500 bg-opacity-10 border border-success-500 border-opacity-30'
-                  : 'bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30'
-              }`}
-            >
-              {feedback.correct ? (
-                <CheckCircle className="text-success-400 animate-pulse" size={24} />
-              ) : (
-                <XCircle className="text-red-400 animate-shake" size={24} />
-              )}
-              <span
-                className={`font-semibold ${
-                  feedback.correct ? 'text-success-400' : 'text-red-400'
-                }`}
-              >
-                {feedback.message}
-              </span>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            {!feedback && (
-              <button
-                onClick={handleCheckAnswer}
-                disabled={
-                  (currentContent.type === 'multiple-choice' && !selectedAnswer) ||
-                  (currentContent.type === 'code' && !userCode.trim())
-                }
-                className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Check Answer
-              </button>
+              </div>
             )}
-
-            {feedback && feedback.correct && (
-              <button
-                onClick={handleNext}
-                disabled={isCompleting}
-                className="flex-1 btn-success disabled:opacity-50"
-              >
-                {isCompleting ? 'Completing...' : isLastStep ? 'Complete Lesson' : 'Next Step'}
-              </button>
-            )}
-          </div>
+          </LessonValidation>
         </div>
       </div>
     </div>
