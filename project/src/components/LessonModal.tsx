@@ -8,6 +8,7 @@ import { PuzzleGameLesson } from './PuzzleGameLesson';
 import { StoryLesson } from './StoryLesson';
 import { ProgressiveHints } from './ui/ProgressiveHints';
 import { SkyTips } from './ui/SkyTips';
+import { LessonValidation } from './interactive/LessonValidation';
 
 type LessonModalProps = {
   lesson: Lesson;
