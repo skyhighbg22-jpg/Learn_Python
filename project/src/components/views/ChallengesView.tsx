@@ -6,6 +6,7 @@ import {
 import { supabase, DailyChallenge } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { dailyChallengeService, DailyChallenge as ServiceDailyChallenge } from '../../services/dailyChallengeService';
+import { ChallengeModal } from '../ChallengeModal';
 // Import with fallback for missing NotificationContext
 import { useNotifications } from '../../contexts/NotificationContext';
 
