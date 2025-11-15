@@ -250,23 +250,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isNewUser = !existingProfile;
 
     if (isNewUser) {
-      // Create profile for new OAuth user
+      // Create profile for new OAuth user using ensureProfileExists
       const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
       const username = session.user.user_metadata?.username ||
                      fullName?.toLowerCase().replace(/\s+/g, '_') ||
                      `user_${session.user.id.slice(0, 8)}`;
 
-      await supabase.from('profiles').insert({
-        id: session.user.id,
+      const oauthMetadata = {
+        full_name: fullName,
         username,
-        full_name: fullName || username,
-        display_name: fullName || username,
-        avatar_character: 'sky', // Default avatar character for OAuth users
         avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-        email_confirmed: true, // OAuth emails are pre-verified
+        email_confirmed: true,
         signup_method: 'google',
-      });
+      };
 
+      await ensureProfileExists(session.user.id, oauthMetadata);
       await sendWelcomeEmail(session.user.email!, fullName || username);
     }
 
