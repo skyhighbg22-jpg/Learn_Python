@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Send, Bot, User } from 'lucide-react';
 import { aiCharacterService, ConversationMessage, ConversationContext } from '../../services/aiCharacterService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AICharacterProps {
   isOpen: boolean;
