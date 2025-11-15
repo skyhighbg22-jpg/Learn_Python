@@ -204,40 +204,31 @@ export const ChallengesView = () => {
   }, []);
 
   // Start challenge
-  const startChallenge = async (challenge: ServiceDailyChallenge) => {
-    if (!challenge || !profile?.id) return;
+  const startChallenge = (challenge: ServiceDailyChallenge) => {
+    if (!challenge) return;
 
-    setIsStarting(true);
-    try {
-      // Create challenge attempt record
-      const { error } = await supabase
-        .from('daily_challenge_attempts')
-        .insert({
-          user_id: profile.id,
-          challenge_id: challenge.id,
-          challenge_date: new Date().toISOString().split('T')[0],
-          score: 0,
-          completed: false,
-          attempts: 1,
-          completion_time: 0,
-          started_at: new Date().toISOString()
-        });
+    setSelectedChallenge(challenge);
+    setIsChallengeModalOpen(true);
 
-      if (error) throw error;
+    addNotification({
+      type: 'info',
+      title: 'Challenge Opened',
+      message: `Starting ${challenge.title}`,
+      duration: 2000
+    });
+  };
 
-      // Navigate to challenge (this would integrate with your routing)
-      addNotification({
-        type: 'success',
-        title: 'Challenge Started',
-        message: `${challenge.title} - ${challenge.difficulty}`,
-        duration: 3000
-      });
+  // Handle challenge completion
+  const handleChallengeComplete = (score: number, timeSpent: number) => {
+    // Refresh the challenges list to show completion status
+    loadTodayChallenge();
 
-    } catch (error) {
-      console.error('Error starting challenge:', error);
-    } finally {
-      setIsStarting(false);
-    }
+    addNotification({
+      type: 'success',
+      title: 'Challenge Completed!',
+      message: `Score: ${score}/100 | Time: ${timeSpent}s`,
+      duration: 5000
+    });
   };
 
   // Update time left for today's challenge
