@@ -32,72 +32,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const ensureProfileExists = async (userId: string, userMetadata?: any) => {
     try {
-      const { data, error } = await supabase
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        // Create fallback profile when fetch fails
-        const fallbackProfile: Profile = {
-          id: userId,
-          username: `user_${userId.slice(0, 8)}`,
-          display_name: 'New Learner',
-          avatar_character: 'sky',
-          avatar_url: null,
-          current_streak: 0,
-          longest_streak: 0,
-          total_xp: 0,
-          current_level: 1,
-          hearts: 5,
-          last_heart_reset: new Date().toISOString(),
-          league: 'bronze',
-          learning_path: null,
-          daily_goal_minutes: 30,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        setProfile(fallbackProfile);
-        return;
+      if (existingProfile) {
+        return existingProfile;
       }
 
-      // If profile doesn't exist yet, create fallback profile
-      if (!data) {
-        const fallbackProfile: Profile = {
-          id: userId,
-          username: `user_${userId.slice(0, 8)}`,
-          display_name: 'New Learner',
-          avatar_character: 'sky',
-          avatar_url: null,
-          current_streak: 0,
-          longest_streak: 0,
-          total_xp: 0,
-          current_level: 1,
-          hearts: 5,
-          last_heart_reset: new Date().toISOString(),
-          league: 'bronze',
-          learning_path: null,
-          daily_goal_minutes: 30,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        setProfile(fallbackProfile);
-      } else {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Unexpected error in fetchProfile:', error);
-      // Create fallback profile for any unexpected errors
-      const fallbackProfile: Profile = {
+      // Create profile from user metadata or auth data
+      const { data: { user } } = await supabase.auth.getUser();
+      const fullName = userMetadata?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name;
+      const username = userMetadata?.username || user?.user_metadata?.username ||
+                     fullName?.toLowerCase().replace(/\s+/g, '_') ||
+                     `user_${userId.slice(0, 8)}`;
+
+      const newProfile = {
         id: userId,
-        username: `user_${userId.slice(0, 8)}`,
-        display_name: 'New Learner',
+        username,
+        full_name: fullName || username,
+        display_name: fullName || username,
         avatar_character: 'sky',
-        avatar_url: null,
+        avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture,
         current_streak: 0,
         longest_streak: 0,
         total_xp: 0,
@@ -107,10 +68,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         league: 'bronze',
         learning_path: null,
         daily_goal_minutes: 30,
+        email_confirmed: user?.email_confirmed || false,
+        signup_method: 'email',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      setProfile(fallbackProfile);
+
+      const { data: createdProfile, error } = await supabase
+        .from('profiles')
+        .insert(newProfile)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        throw error;
+      }
+
+      return createdProfile;
+    } catch (error) {
+      console.error('Error in ensureProfileExists:', error);
+      throw error;
+    }
+  };
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      // Retry logic for profile fetch
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error(`Error fetching profile (attempt ${retryCount + 1}):`, error);
+          retryCount++;
+          if (retryCount >= maxRetries) {
+            throw new Error(`Failed to fetch profile after ${maxRetries} attempts: ${error.message}`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+          continue;
+        }
+
+        if (!data) {
+          // Profile doesn't exist, create it from auth metadata
+          const { data: { user } } = await supabase.auth.getUser();
+          const createdProfile = await ensureProfileExists(userId, user?.user_metadata);
+          setProfile(createdProfile);
+          return;
+        }
+
+        setProfile(data);
+        return;
+      }
+    } catch (error) {
+      console.error('Critical error in fetchProfile:', error);
+      // Don't create fallback profile - let the error propagate
+      setProfile(null);
+      throw error;
     }
   };
 
@@ -145,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: {
           username,
           full_name: fullName || username,
+          display_name: fullName || username,
         }
       }
     });
@@ -152,7 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) throw error;
     if (!data.user) throw new Error('No user returned');
 
-    // Create profile
+    // Create profile with proper display_name
     const { error: profileError } = await supabase.from('profiles').insert({
       id: data.user.id,
       username,
@@ -162,6 +183,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       avatar_url: null,
       email_confirmed: false,
       signup_method: 'email',
+      current_streak: 0,
+      longest_streak: 0,
+      total_xp: 0,
+      current_level: 1,
+      hearts: 5,
+      last_heart_reset: new Date().toISOString(),
+      league: 'bronze',
+      learning_path: null,
+      daily_goal_minutes: 30,
     });
 
     if (profileError) throw profileError;
@@ -220,23 +250,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isNewUser = !existingProfile;
 
     if (isNewUser) {
-      // Create profile for new OAuth user
+      // Create profile for new OAuth user using ensureProfileExists
       const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
       const username = session.user.user_metadata?.username ||
                      fullName?.toLowerCase().replace(/\s+/g, '_') ||
                      `user_${session.user.id.slice(0, 8)}`;
 
-      await supabase.from('profiles').insert({
-        id: session.user.id,
+      const oauthMetadata = {
+        full_name: fullName,
         username,
-        full_name: fullName || username,
-        display_name: fullName || username,
-        avatar_character: 'sky', // Default avatar character for OAuth users
         avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-        email_confirmed: true, // OAuth emails are pre-verified
+        email_confirmed: true,
         signup_method: 'google',
-      });
+      };
 
+      await ensureProfileExists(session.user.id, oauthMetadata);
       await sendWelcomeEmail(session.user.email!, fullName || username);
     }
 
@@ -274,21 +302,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isNewUser = !existingProfile;
 
     if (isNewUser) {
-      // Create profile for new OAuth user
+      // Create profile for new OAuth user using ensureProfileExists
       const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
       const username = session.user.user_metadata?.username ||
                      fullName?.toLowerCase().replace(/\s+/g, '_') ||
                      `user_${session.user.id.slice(0, 8)}`;
 
-      await supabase.from('profiles').insert({
-        id: session.user.id,
+      const oauthMetadata = {
+        full_name: fullName,
         username,
-        full_name: fullName || username,
-        display_name: fullName || username,
-        email_confirmed: true, // OAuth emails are pre-verified
+        email_confirmed: true,
         signup_method: 'apple',
-      });
+      };
 
+      await ensureProfileExists(session.user.id, oauthMetadata);
       await sendWelcomeEmail(session.user.email!, fullName || username);
     }
 

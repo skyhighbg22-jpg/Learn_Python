@@ -32,31 +32,187 @@ export const ProjectBuilderView = () => {
   }, [profile]);
 
   const loadProjects = async () => {
-    const { data } = await supabase
-      .from('project_templates')
-      .select('*')
-      .order('difficulty');
+    try {
+      const { data } = await supabase
+        .from('project_templates')
+        .select('*')
+        .order('difficulty');
 
-    if (data) {
-      setProjects(data);
+      if (data && data.length > 0) {
+        setProjects(data);
 
-      if (profile) {
-        const { data: userProjectsData } = await supabase
-          .from('user_project_attempts')
-          .select('*')
-          .eq('user_id', profile.id);
+        if (profile) {
+          const { data: userProjectsData } = await supabase
+            .from('user_project_attempts')
+            .select('*')
+            .eq('user_id', profile.id);
 
-        if (userProjectsData) {
-          const projectsMap = userProjectsData.reduce((acc, p) => {
-            acc[p.project_id] = p;
-            return acc;
-          }, {} as Record<string, any>);
-          setUserProjects(projectsMap);
+          if (userProjectsData) {
+            const projectsMap = userProjectsData.reduce((acc, p) => {
+              acc[p.project_id] = p;
+              return acc;
+            }, {} as Record<string, any>);
+            setUserProjects(projectsMap);
+          }
         }
+      } else {
+        // Use sample projects when database is empty
+        setProjects(getSampleProjects());
       }
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      // Fallback to sample projects on error
+      setProjects(getSampleProjects());
     }
 
     setLoading(false);
+  };
+
+  // Sample projects when database is empty
+  const getSampleProjects = (): Project[] => {
+    return [
+      {
+        id: 'project-1',
+        title: 'Personal Todo App',
+        description: 'Build a command-line todo application',
+        difficulty: 'beginner',
+        category: 'productivity',
+        xp_reward: 50,
+        project_brief: 'Create a simple command-line todo application that allows users to add, view, complete, and delete tasks. The app should save tasks to a file so they persist between sessions.',
+        learning_objectives: [
+          'Working with lists and dictionaries',
+          'File I/O operations',
+          'Command-line argument parsing',
+          'Error handling and validation'
+        ],
+        resources: [
+          'Python argparse module documentation',
+          'File handling with open() and context managers',
+          'JSON module for data persistence'
+        ],
+        starter_files: {
+          'main.py': '# Todo App - Your Personal Task Manager\n\ndef main():\n    print("Welcome to Todo App!")\n    # Your code here\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      },
+      {
+        id: 'project-2',
+        title: 'Weather Dashboard',
+        description: 'Create a weather information dashboard',
+        difficulty: 'intermediate',
+        category: 'web-scraping',
+        xp_reward: 75,
+        project_brief: 'Build a weather dashboard that fetches current weather data from a free weather API and displays it in a user-friendly format. The app should show temperature, humidity, wind speed, and weather conditions.',
+        learning_objectives: [
+          'Making HTTP requests with requests library',
+          'Working with JSON APIs',
+          'Data formatting and display',
+          'Error handling for network requests'
+        ],
+        resources: [
+          'OpenWeatherMap API documentation',
+          'Python requests library guide',
+          'JSON data manipulation'
+        ],
+        starter_files: {
+          'main.py': '# Weather Dashboard\nimport requests\nimport json\n\ndef get_weather(city):\n    # Your code here\n    pass\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      },
+      {
+        id: 'project-3',
+        title: 'Expense Tracker',
+        description: 'Build a personal expense tracking application',
+        difficulty: 'intermediate',
+        category: 'finance',
+        xp_reward: 80,
+        project_brief: 'Create an expense tracker that allows users to log daily expenses, categorize them, view spending patterns, and generate simple reports. The app should store data in a CSV or JSON file.',
+        learning_objectives: [
+          'Data structures for organizing expenses',
+          'CSV/JSON file operations',
+          'Date and time handling',
+          'Data analysis and reporting'
+        ],
+        resources: [
+          'Python csv module documentation',
+          'datetime module guide',
+          'Pandas basics for data analysis'
+        ],
+        starter_files: {
+          'main.py': '# Expense Tracker\nimport csv\nfrom datetime import datetime\n\nclass ExpenseTracker:\n    def __init__(self):\n        # Your code here\n        pass\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      },
+      {
+        id: 'project-4',
+        title: 'Web Scraper for News',
+        description: 'Create a news scraping and summarization tool',
+        difficulty: 'advanced',
+        category: 'web-scraping',
+        xp_reward: 100,
+        project_brief: 'Build a web scraper that extracts news articles from a news website, summarizes the content, and saves the results. The scraper should handle multiple articles and respect rate limits.',
+        learning_objectives: [
+          'Web scraping with BeautifulSoup',
+          'Text processing and summarization',
+          'Rate limiting and ethical scraping',
+          'Data storage and organization'
+        ],
+        resources: [
+          'BeautifulSoup documentation',
+          'Text summarization techniques',
+          'Web scraping best practices',
+          'Robots.txt and scraping ethics'
+        ],
+        starter_files: {
+          'main.py': '# News Scraper and Summarizer\nimport requests\nfrom bs4 import BeautifulSoup\nimport time\n\nclass NewsScraper:\n    def __init__(self):\n        # Your code here\n        pass\n\n    def scrape_article(self, url):\n        # Your code here\n        pass\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      },
+      {
+        id: 'project-5',
+        title: 'Chat Bot Assistant',
+        description: 'Build an intelligent chat bot assistant',
+        difficulty: 'advanced',
+        category: 'ai',
+        xp_reward: 120,
+        project_brief: 'Create a chat bot that can answer questions, tell jokes, provide information, and maintain conversation context. The bot should have personality and be able to learn from interactions.',
+        learning_objectives: [
+          'Natural language processing basics',
+          'Pattern matching and responses',
+          'Conversation state management',
+          'API integration for enhanced capabilities'
+        ],
+        resources: [
+          'Regular expressions for pattern matching',
+          'NLP concepts and techniques',
+          'Chatbot design principles',
+          'Context management strategies'
+        ],
+        starter_files: {
+          'main.py': '# Chat Bot Assistant\nimport re\nimport random\nimport json\nfrom datetime import datetime\n\nclass ChatBot:\n    def __init__(self, name="Assistant"):\n        # Your code here\n        pass\n\n    def respond(self, message):\n        # Your code here\n        pass\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      },
+      {
+        id: 'project-6',
+        title: 'File Organizer',
+        description: 'Create an automated file organization tool',
+        difficulty: 'intermediate',
+        category: 'automation',
+        xp_reward: 70,
+        project_brief: 'Build a file organizer that automatically sorts files in a directory into subfolders based on file type, date, or custom rules. The tool should be configurable and include logging.',
+        learning_objectives: [
+          'File system operations with os and pathlib',
+          'Pattern matching and file classification',
+          'Configuration management',
+          'Logging and error handling'
+        ],
+        resources: [
+          'Python os and pathlib modules',
+          'File type detection methods',
+          'Configuration file formats',
+          'Python logging module'
+        ],
+        starter_files: {
+          'main.py': '# File Organizer\nimport os\nimport shutil\nfrom pathlib import Path\nimport logging\nfrom datetime import datetime\n\nclass FileOrganizer:\n    def __init__(self, target_directory):\n        # Your code here\n        pass\n\n    def organize_files(self, rules=None):\n        # Your code here\n        pass\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n'
+        }
+      }
+    ];
   };
 
   const selectProject = (project: Project) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Send, Bot, User } from 'lucide-react';
 import { aiCharacterService, ConversationMessage, ConversationContext } from '../../services/aiCharacterService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AICharacterProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const AICharacter: React.FC<AICharacterProps> = ({
   onToggle,
   lessonContext
 }) => {
+  const { user } = useAuth();
   const [conversation, setConversation] = useState<ConversationContext | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,11 +43,11 @@ export const AICharacter: React.FC<AICharacterProps> = ({
   };
 
   const initializeConversation = async () => {
+    if (!user) return;
+
     setIsLoading(true);
     try {
-      // For now, use a mock user ID - in production this comes from auth
-      const userId = 'demo_user';
-      const newConversation = await aiCharacterService.initializeConversation(userId, lessonContext);
+      const newConversation = await aiCharacterService.initializeConversation(user.id, lessonContext);
       setConversation(newConversation);
     } catch (error) {
       console.error('Failed to initialize conversation:', error);
@@ -199,7 +201,7 @@ export const AICharacter: React.FC<AICharacterProps> = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about Python! 🐍"
+            placeholder="Ask me anything! I can write code, explain concepts, debug errors, and suggest projects! 🚀"
             className="flex-1 bg-slate-700 text-white placeholder-slate-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isLoading}
           />

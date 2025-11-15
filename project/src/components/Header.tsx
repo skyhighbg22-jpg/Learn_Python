@@ -1,9 +1,10 @@
 import { Flame, Heart, Zap, Trophy, Crown, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { ProfilePictureUpload } from './ui/ProfilePictureUpload';
 import { useEffect, useState } from 'react';
 
 export const Header = () => {
-  const { profile } = useAuth();
+  const { profile, updateProfileAvatar } = useAuth();
   const [animatedStats, setAnimatedStats] = useState({
     streak: 0,
     hearts: 5,
@@ -138,10 +139,14 @@ export const Header = () => {
           {/* Enhanced Avatar */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-info-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-250 blur-md"></div>
-            <div className="relative w-14 h-14 bg-gradient-to-br from-primary-500 to-info-500 rounded-full flex items-center justify-center text-white font-bold text-xl transition-transform duration-250 hover:scale-105 cursor-pointer shadow-lg">
-              {profile?.display_name?.charAt(0).toUpperCase()}
-              {/* Avatar ring animation */}
-              <div className="absolute inset-0 rounded-full border-2 border-white border-opacity-20 animate-pulse"></div>
+            <div className="relative transition-transform duration-250 hover:scale-105">
+              <ProfilePictureUpload
+                currentAvatar={profile?.avatar_url}
+                onAvatarChange={updateProfileAvatar}
+                userId={profile?.id || ''}
+                size="md"
+                className="relative"
+              />
             </div>
             {/* Level badge */}
             <div className="absolute -bottom-1 -right-1 bg-warning-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-slate-800 animate-bounce-gentle">
