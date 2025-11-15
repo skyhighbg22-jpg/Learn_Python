@@ -56,11 +56,22 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
 
     this.conversations.set(conversationId, context);
 
+    // Generate welcome message with variety
+    let welcomeContent = this.generateWelcomeMessage(userProgress);
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    // Try to generate a unique welcome message
+    while (!this.shouldGenerateNewWelcome(userId, welcomeContent) && attempts < maxAttempts) {
+      welcomeContent = this.generateWelcomeMessage(userProgress);
+      attempts++;
+    }
+
     // Add welcome message from Sky
     const welcomeMessage: ConversationMessage = {
       id: `sky_${Date.now()}`,
       type: 'sky',
-      content: this.generateWelcomeMessage(userProgress),
+      content: welcomeContent,
       timestamp: new Date(),
       lessonContext
     };
