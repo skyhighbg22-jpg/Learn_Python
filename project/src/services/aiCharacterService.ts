@@ -244,14 +244,44 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
     return `Great question about this lesson! Let me help you understand this concept better... 🎯`;
   }
 
-  async generateMotivationalMessage(userProgress: any, currentStreak: number): Promise<string> {
-    const messages = [
-      `You're doing amazing! ${currentStreak} days strong! 💪`,
+  async generateMotivationalMessage(userProgress: any, currentStreak?: number): Promise<string> {
+    const streak = currentStreak || userProgress.currentStreak || 0;
+    const xp = userProgress.totalXP || 0;
+    const completedLessons = userProgress.completedLessons || 0;
+    const level = userProgress.currentLevel || 1;
+
+    const messages = [];
+
+    // Streak-based messages
+    if (streak > 0) {
+      messages.push(
+        `${streak} day streak! That's serious dedication! 🔥`,
+        `You're on fire with ${streak} consecutive days! 💪`,
+        `${streak} days strong! Your consistency is paying off! 🌟`,
+        `Amazing! ${streak} days of Python learning! 🐍✨`
+      );
+    }
+
+    // XP-based messages
+    if (xp > 0) {
+      messages.push(
+        `${xp} XP earned! Your skills are growing every day! 📈`,
+        `You've accumulated ${xp} XP! That's impressive progress! 🎯`,
+        `${xp} XP in the bank! You're building Python mastery! 💻`,
+        `Wow, ${xp} XP! Your dedication is showing! ⚡`
+      );
+    }
+
+    // General progress messages
+    messages.push(
       `Every lesson completed makes you a better coder! 🌟`,
       `Your progress is incredible! Keep it up! 🚀`,
       `You're building Python skills that will last a lifetime! 🐍✨`,
-      `Streak ${currentStreak}! That's dedication! 🔥`
-    ];
+      `Level ${level} and climbing! You're doing amazing! 🏆`,
+      `${completedLessons} lesson${completedLessons === 1 ? '' : 's'} completed! That's fantastic! 📚`,
+      `Consistency is key, and you're proving it! 💙`,
+      `Your Python journey is inspiring! Keep going! 🌈`
+    );
 
     return messages[Math.floor(Math.random() * messages.length)];
   }
