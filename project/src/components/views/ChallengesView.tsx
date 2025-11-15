@@ -620,6 +620,17 @@ export const ChallengesView = () => {
           )}
         </div>
       )}
+
+      {/* Challenge Modal */}
+      <ChallengeModal
+        challenge={selectedChallenge}
+        isOpen={isChallengeModalOpen}
+        onClose={() => {
+          setIsChallengeModalOpen(false);
+          setSelectedChallenge(null);
+        }}
+        onComplete={handleChallengeComplete}
+      />
     </div>
   );
 };
