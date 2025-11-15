@@ -51,50 +51,87 @@ Your mission: Make Python learning fun, accessible, and rewarding! Always end wi
   }
 
   private async makeApiCall(messages: GroqMessage[]): Promise<string> {
-    try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant', // Using fast, free model
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 1000,
-          top_p: 0.9,
-          stream: false,
-        }),
-      });
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Groq API attempt ${attempt} of ${maxRetries}`);
 
-      const data: GroqResponse = await response.json();
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-8b-instant', // Fast, free model
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 1500, // Increased for longer responses
+            top_p: 0.9,
+            stream: false,
+          }),
+        });
 
-      if (data.choices && data.choices.length > 0) {
-        return data.choices[0].message.content;
-      } else {
-        throw new Error('No response from API');
-      }
-    } catch (error) {
-      console.error('Groq API error:', error);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Groq API error ${response.status}:`, errorText);
 
-      // Fallback responses for common scenarios
-      if (error instanceof Error) {
-        if (error.message.includes('401')) {
+          if (response.status === 429) {
+            // Rate limit - wait longer between retries
+            await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+            continue;
+          } else if (response.status === 401) {
+            return "I'm having trouble with my AI connection right now. Please try again in a moment! 🌟";
+          }
+
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data: GroqResponse = await response.json();
+
+        if (data.choices && data.choices.length > 0) {
+          const responseText = data.choices[0].message.content;
+          console.log('Groq API success, response length:', responseText.length);
+          return responseText;
+        } else {
+          throw new Error('No response from API');
+        }
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`Groq API attempt ${attempt} failed:`, lastError.message);
+
+        // Don't retry on authentication errors
+        if (lastError.message.includes('401') || lastError.message.includes('Unauthorized')) {
           return "I'm having trouble with my AI connection right now. Please try again in a moment! 🌟";
-        } else if (error.message.includes('429')) {
-          return "So many questions! I need a moment to catch up. Try again in a few seconds! ⚡";
-        } else if (error.message.includes('timeout')) {
-          return "Whoops, I got stuck thinking! Let me try that again. Could you ask once more? 💭";
+        }
+
+        // Wait before retrying (exponential backoff)
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
-
-      return "I'm having a moment of technical difficulty, but I'm still here to help! Try rephrasing your question. 🚀";
     }
+
+    // All retries failed, return fallback
+    console.error('All Groq API attempts failed, using fallback');
+    return this.getFallbackResponse(lastError);
+  }
+
+  private getFallbackResponse(error: Error | null): string {
+    if (error) {
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        return "I'm having trouble with my AI connection right now. Please try again in a moment! 🌟";
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        return "So many questions! I need a moment to catch up. Try again in a few seconds! ⚡";
+      } else if (error.message.includes('timeout') || error.message.includes('network')) {
+        return "Whoops, I got stuck thinking! Let me try that again. Could you ask once more? 💭";
+      }
+    }
+
+    return "I'm having a moment of technical difficulty, but I'm still here to help! Try rephrasing your question. 🚀";
   }
 
   async generateCode(prompt: string, context?: string): Promise<string> {
