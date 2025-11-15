@@ -270,7 +270,27 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
   async getContextualHelp(lessonId: string, userQuestion: string): Promise<string> {
     // This would integrate with lesson data to provide context-specific help
-    return `Great question about this lesson! Let me help you understand this concept better... 🎯`;
+    return await groqService.answerQuestion(`Help with lesson ${lessonId}: ${userQuestion}`, null);
+  }
+
+  async generateCode(request: string, context?: string): Promise<string> {
+    return await groqService.generateCode(request, context);
+  }
+
+  async debugCode(code: string, error?: string): Promise<string> {
+    return await groqService.debugCode(code, error);
+  }
+
+  async explainConcept(concept: string): Promise<string> {
+    return await groqService.explainConcept(concept);
+  }
+
+  async suggestProject(idea: string, difficulty?: string): Promise<string> {
+    return await groqService.suggestProject(idea, difficulty);
+  }
+
+  async reviewCode(code: string, description?: string): Promise<string> {
+    return await groqService.reviewCode(code, description);
   }
 
   async generateMotivationalMessage(userProgress: any, currentStreak?: number): Promise<string> {
