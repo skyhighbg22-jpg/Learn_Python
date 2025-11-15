@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { getSuperbaseConfigFromRuntime } from '../utils/runtimeConfig';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Try to get config from runtime (Docker container), fallback to import.meta.env (dev)
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+try {
+  const runtimeConfig = getSuperbaseConfigFromRuntime();
+  if (runtimeConfig.url) supabaseUrl = runtimeConfig.url;
+  if (runtimeConfig.anonKey) supabaseAnonKey = runtimeConfig.anonKey;
+} catch {
+  // Config not loaded yet, use env vars
+  console.log('Using Supabase config from env vars');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
