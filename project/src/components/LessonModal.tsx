@@ -30,6 +30,7 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   // LessonValidation integration state
   const [validationProgress, setValidationProgress] = useState(0);
   const [lessonCompleted, setLessonCompleted] = useState(false);
+  const [validationInstance, setValidationInstance] = useState<any>(null);
 
   const currentContent = lesson.content[currentStep];
   const isLastStep = currentStep === lesson.content.length - 1;
