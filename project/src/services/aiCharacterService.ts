@@ -175,15 +175,59 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
   private generateWelcomeMessage(userProgress: any): string {
     const streak = userProgress.currentStreak || 0;
     const xp = userProgress.totalXP || 0;
+    const level = userProgress.currentLevel || 1;
+    const completedLessons = userProgress.completedLessons || 0;
+    const longestStreak = userProgress.longestStreak || 0;
+    const hasData = userProgress.hasData || false;
 
     let message = `Hey there! I'm Sky, your personal Python coach! 🌟\n\n`;
 
-    if (streak > 0) {
-      message += `Wow - ${streak} day streak! You're on fire! 🔥 `;
+    // Different welcome messages based on user's actual progress
+    if (!hasData || (streak === 0 && xp === 0)) {
+      // New user welcome
+      message += `Welcome to your Python learning journey! 🐍✨ Every expert was once a beginner, and you're about to start an amazing adventure! 🚀`;
+    } else if (streak === 0 && completedLessons > 0) {
+      // User with some lessons but no current streak
+      message += `Great to see you back! You've completed ${completedLessons} lesson${completedLessons === 1 ? '' : 's'} - that's fantastic progress! 📚 Let's get that streak going again! 💪`;
+    } else if (streak > 0) {
+      // User with active streak
+      const streakMessages = [
+        `Wow - ${streak} day streak! You're absolutely on fire! 🔥`,
+        `${streak} day streak! That's what I call dedication! 💙`,
+        `Amazing work! ${streak} days strong and counting! 🌟`,
+        `You're building serious momentum with a ${streak} day streak! 🚀`
+      ];
+      message += streakMessages[Math.floor(Math.random() * streakMessages.length)] + ' ';
+
+      if (streak === longestStreak && streak > 1) {
+        message += `That's your best streak ever! 🏆 `;
+      }
     }
 
+    // XP messages with variety
     if (xp > 0) {
-      message += `${xp} XP earned - you're building some serious skills! 💪`;
+      const xpMessages = [
+        `${xp} XP earned - you're building some serious skills! 💪`,
+        `${xp} XP in the bank! Your Python powers are growing! ⚡`,
+        `You've racked up ${xp} XP! That's impressive progress! 🎯`,
+        `${xp} XP earned! Every point makes you a stronger coder! 💻`
+      ];
+      message += xpMessages[Math.floor(Math.random() * xpMessages.length)];
+    }
+
+    // Level-specific encouragement
+    if (level > 1) {
+      const levelMessages = [
+        `Level ${level} - you're really climbing the ranks! 📈`,
+        `Level ${level} coder right here! Keep leveling up! 🎮`,
+        `Wow, level ${level}! Your skills are leveling up fast! ⭐`
+      ];
+      message += ` ${levelMessages[Math.floor(Math.random() * levelMessages.length)]}`;
+    }
+
+    // Achievement recognition
+    if (userProgress.recentAchievements && userProgress.recentAchievements.length > 0) {
+      message += ` \n\n🏆 Recent achievements unlocked! You're on a roll!`;
     }
 
     message += `\n\nI'm here to help with coding questions, keep you motivated, and celebrate your wins! What can I help you with today? 🚀`;
