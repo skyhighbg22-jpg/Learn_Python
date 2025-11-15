@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Clock, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { CodeEditor } from '../CodeEditor';
 import { dailyChallengeService, DailyChallenge } from '../../services/dailyChallengeService';
 
