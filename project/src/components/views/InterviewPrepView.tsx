@@ -37,32 +37,175 @@ export const InterviewPrepView = () => {
   }, [isTimerRunning, timeLeft]);
 
   const loadQuestions = async () => {
-    const { data } = await supabase
-      .from('interview_questions')
-      .select('*')
-      .order('difficulty')
-      .limit(20);
+    try {
+      const { data } = await supabase
+        .from('interview_questions')
+        .select('*')
+        .order('difficulty')
+        .limit(20);
 
-    if (data) {
-      setQuestions(data);
+      if (data && data.length > 0) {
+        setQuestions(data);
 
-      if (profile) {
-        const { data: attemptsData } = await supabase
-          .from('user_interview_attempts')
-          .select('*')
-          .eq('user_id', profile.id);
+        if (profile) {
+          const { data: attemptsData } = await supabase
+            .from('user_interview_attempts')
+            .select('*')
+            .eq('user_id', profile.id);
 
-        if (attemptsData) {
-          const attemptsMap = attemptsData.reduce((acc, a) => {
-            acc[a.question_id] = a;
-            return acc;
-          }, {} as Record<string, any>);
-          setUserAttempts(attemptsMap);
+          if (attemptsData) {
+            const attemptsMap = attemptsData.reduce((acc, a) => {
+              acc[a.question_id] = a;
+              return acc;
+            }, {} as Record<string, any>);
+            setUserAttempts(attemptsMap);
+          }
         }
+      } else {
+        // Use sample interview questions when database is empty
+        setQuestions(getSampleInterviewQuestions());
       }
+    } catch (error) {
+      console.error('Error loading interview questions:', error);
+      // Fallback to sample questions on error
+      setQuestions(getSampleInterviewQuestions());
     }
 
     setLoading(false);
+  };
+
+  // Sample interview questions when database is empty
+  const getSampleInterviewQuestions = (): InterviewQuestion[] => {
+    return [
+      {
+        id: 'interview-1',
+        title: 'Two Sum Problem',
+        description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+        difficulty: 'easy',
+        category: 'arrays',
+        test_cases: [
+          { input: 'nums = [2,7,11,15], target = 9', expectedOutput: '[0,1]' },
+          { input: 'nums = [3,2,4], target = 6', expectedOutput: '[1,2]' }
+        ],
+        hints: [
+          'Use a hash map to store previously seen numbers',
+          'For each number, check if (target - current) exists in the hash map',
+          'Hash map lookup is O(1), making overall solution O(n)'
+        ]
+      },
+      {
+        id: 'interview-2',
+        title: 'Reverse Linked List',
+        description: 'Given the head of a singly linked list, reverse the list, and return the reversed list.',
+        difficulty: 'medium',
+        category: 'linked-lists',
+        test_cases: [
+          { input: 'head = [1,2,3,4,5]', expectedOutput: '[5,4,3,2,1]' },
+          { input: 'head = [1,2]', expectedOutput: '[2,1]' }
+        ],
+        hints: [
+          'Use three pointers: prev, current, and next',
+          'Store next node before changing the current node\'s pointer',
+          'Move all three pointers forward until current becomes null'
+        ]
+      },
+      {
+        id: 'interview-3',
+        title: 'Valid Parentheses',
+        description: 'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\' and \']\', determine if the input string is valid.',
+        difficulty: 'easy',
+        category: 'stacks',
+        test_cases: [
+          { input: 's = "()"', expectedOutput: 'true' },
+          { input: 's = "()[]{}"', expectedOutput: 'true' },
+          { input: 's = "(]"', expectedOutput: 'false' }
+        ],
+        hints: [
+          'Use a stack to keep track of opening brackets',
+          'For each closing bracket, check if it matches the top of the stack',
+          'At the end, stack should be empty for valid parentheses'
+        ]
+      },
+      {
+        id: 'interview-4',
+        title: 'Merge Two Sorted Lists',
+        description: 'Merge two sorted linked lists and return it as a sorted list. The list should be made by splicing together the nodes of the first two lists.',
+        difficulty: 'medium',
+        category: 'linked-lists',
+        test_cases: [
+          { input: 'l1 = [1,2,4], l2 = [1,3,4]', expectedOutput: '[1,1,2,3,4,4]' },
+          { input: 'l1 = [], l2 = []', expectedOutput: '[]' }
+        ],
+        hints: [
+          'Use two pointers to traverse both lists simultaneously',
+          'Compare nodes and connect the smaller one to the result',
+          'Handle the case where one list is exhausted before the other'
+        ]
+      },
+      {
+        id: 'interview-5',
+        title: 'Binary Tree Maximum Path Sum',
+        description: 'A path in a binary tree is a sequence of nodes where each pair of adjacent nodes has an edge connecting them. Find the maximum path sum.',
+        difficulty: 'hard',
+        category: 'trees',
+        test_cases: [
+          { input: 'root = [1,2,3]', expectedOutput: '6' },
+          { input: 'root = [-10,9,20,null,null,15,7]', expectedOutput: '42' }
+        ],
+        hints: [
+          'Use post-order traversal to compute maximum sums',
+          'For each node, calculate max path sum through it and max sum ending at it',
+          'Keep track of global maximum throughout the traversal'
+        ]
+      },
+      {
+        id: 'interview-6',
+        title: 'LRU Cache',
+        description: 'Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.',
+        difficulty: 'hard',
+        category: 'design',
+        test_cases: [
+          { input: 'put(1,1), put(2,2), get(1), put(3,3), get(2)', expectedOutput: '1, -1' }
+        ],
+        hints: [
+          'Use combination of hash map and doubly linked list',
+          'Hash map provides O(1) access to nodes',
+          'Linked list maintains recency order for O(1) updates'
+        ]
+      },
+      {
+        id: 'interview-7',
+        title: 'Product of Array Except Self',
+        description: 'Given an integer array nums, return an array answer such that answer[i] is equal to the product of all elements of nums except nums[i].',
+        difficulty: 'medium',
+        category: 'arrays',
+        test_cases: [
+          { input: 'nums = [1,2,3,4]', expectedOutput: '[24,12,8,6]' },
+          { input: 'nums = [-1,1,0,-3,3]', expectedOutput: '[0,0,9,0,0]' }
+        ],
+        hints: [
+          'Compute prefix products and suffix products separately',
+          'Answer[i] = prefix[i-1] * suffix[i+1]',
+          'Handle edge cases for first and last elements'
+        ]
+      },
+      {
+        id: 'interview-8',
+        title: 'Word Search',
+        description: 'Given an m x n grid of characters board and a string word, return true if word exists in the grid.',
+        difficulty: 'medium',
+        category: 'backtracking',
+        test_cases: [
+          { input: 'board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"', expectedOutput: 'true' },
+          { input: 'board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "SEE"', expectedOutput: 'true' }
+        ],
+        hints: [
+          'Use DFS with backtracking to explore all possible paths',
+          'Mark visited cells to avoid cycles',
+          'Unmark cells when backtracking for other paths'
+        ]
+      }
+    ];
   };
 
   const startInterview = (question: InterviewQuestion) => {
