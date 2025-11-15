@@ -443,51 +443,88 @@ export const CodeChallengesView = () => {
     setIsSubmitting(true);
 
     try {
-      const executionResult = simulateCodeExecution(code, selectedChallenge.test_cases);
+      const executionResult = simulateCodeExecution(code, selectedChallenge);
       setResult(executionResult);
 
-      if (executionResult.success) {
-        const existingAttempt = userAttempts[selectedChallenge.id];
+      // For sample challenges, store progress locally (no database operations)
+      if (selectedChallenge.id.startsWith('sample-')) {
+        // Store in local state for sample challenges
+        const newAttempt = {
+          id: `${selectedChallenge.id}-${profile.id}`,
+          challenge_id: selectedChallenge.id,
+          solution_code: code,
+          passed: executionResult.success,
+          completed_at: new Date().toISOString(),
+          attempts_count: (userAttempts[selectedChallenge.id]?.attempts_count || 0) + 1,
+          score: executionResult.score || 0
+        };
 
-        if (existingAttempt) {
-          await supabase
-            .from('user_code_attempts')
-            .update({
+        setUserAttempts(prev => ({
+          ...prev,
+          [selectedChallenge.id]: newAttempt
+        }));
+
+        // Award XP for successful completion of sample challenges
+        if (executionResult.success) {
+          try {
+            await supabase
+              .from('profiles')
+              .update({
+                total_xp: profile.total_xp + selectedChallenge.xp_reward,
+                current_level: Math.floor((profile.total_xp + selectedChallenge.xp_reward) / 100) + 1,
+              })
+              .eq('id', profile.id);
+
+            await refreshProfile();
+          } catch (error) {
+            console.error('Error updating XP for sample challenge:', error);
+          }
+        }
+      } else {
+        // Handle database challenges normally
+        if (executionResult.success) {
+          const existingAttempt = userAttempts[selectedChallenge.id];
+
+          if (existingAttempt) {
+            await supabase
+              .from('user_code_attempts')
+              .update({
+                solution_code: code,
+                passed: true,
+                completed_at: new Date().toISOString(),
+                attempts_count: existingAttempt.attempts_count + 1,
+              })
+              .eq('id', existingAttempt.id);
+          } else {
+            await supabase.from('user_code_attempts').insert({
+              user_id: profile.id,
+              challenge_id: selectedChallenge.id,
               solution_code: code,
               passed: true,
               completed_at: new Date().toISOString(),
-              attempts_count: existingAttempt.attempts_count + 1,
-            })
-            .eq('id', existingAttempt.id);
-        } else {
-          await supabase.from('user_code_attempts').insert({
-            user_id: profile.id,
-            challenge_id: selectedChallenge.id,
-            solution_code: code,
-            passed: true,
-            completed_at: new Date().toISOString(),
-          });
-        }
+            });
+          }
 
-        await supabase
-          .from('profiles')
-          .update({
-            total_xp: profile.total_xp + selectedChallenge.xp_reward,
-            current_level: Math.floor((profile.total_xp + selectedChallenge.xp_reward) / 100) + 1,
-          })
-          .eq('id', profile.id);
-
-        await refreshProfile();
-        await loadChallenges();
-      } else {
-        const existingAttempt = userAttempts[selectedChallenge.id];
-        if (existingAttempt) {
           await supabase
-            .from('user_code_attempts')
+            .from('profiles')
             .update({
-              attempts_count: existingAttempt.attempts_count + 1,
+              total_xp: profile.total_xp + selectedChallenge.xp_reward,
+              current_level: Math.floor((profile.total_xp + selectedChallenge.xp_reward) / 100) + 1,
             })
-            .eq('id', existingAttempt.id);
+            .eq('id', profile.id);
+
+          await refreshProfile();
+          await loadChallenges();
+        } else {
+          const existingAttempt = userAttempts[selectedChallenge.id];
+          if (existingAttempt) {
+            await supabase
+              .from('user_code_attempts')
+              .update({
+                attempts_count: existingAttempt.attempts_count + 1,
+              })
+              .eq('id', existingAttempt.id);
+          }
         }
       }
     } catch (error) {
