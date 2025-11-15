@@ -59,6 +59,8 @@ export const ChallengesView = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [streakData, setStreakData] = useState<any>(null);
   const [streakBonus, setStreakBonus] = useState(0);
+  const [selectedChallenge, setSelectedChallenge] = useState<ServiceDailyChallenge | null>(null);
+  const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
 
   // Helper function for exponential backoff retry
   const retryWithBackoff = async <T,>(
