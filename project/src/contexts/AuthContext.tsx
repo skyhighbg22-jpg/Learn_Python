@@ -165,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: {
           username,
           full_name: fullName || username,
+          display_name: fullName || username,
         }
       }
     });
@@ -172,7 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) throw error;
     if (!data.user) throw new Error('No user returned');
 
-    // Create profile
+    // Create profile with proper display_name
     const { error: profileError } = await supabase.from('profiles').insert({
       id: data.user.id,
       username,
@@ -182,6 +183,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       avatar_url: null,
       email_confirmed: false,
       signup_method: 'email',
+      current_streak: 0,
+      longest_streak: 0,
+      total_xp: 0,
+      current_level: 1,
+      hearts: 5,
+      last_heart_reset: new Date().toISOString(),
+      league: 'bronze',
+      learning_path: null,
+      daily_goal_minutes: 30,
     });
 
     if (profileError) throw profileError;
