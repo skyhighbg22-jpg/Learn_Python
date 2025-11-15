@@ -156,6 +156,57 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
     }
   };
 
+  // LessonValidation integration handlers
+  const handleValidationComplete = (score: number, timeSpent: number) => {
+    setLessonCompleted(true);
+    setShowCelebration(true);
+    setIsCompleting(true);
+
+    // Calculate XP based on score
+    const xpEarned = Math.round((score / 100) * lesson.xp_reward);
+
+    setTimeout(() => {
+      onComplete();
+      onClose();
+    }, 2000);
+  };
+
+  const handleValidationProgress = (progress: number) => {
+    setValidationProgress(progress);
+  };
+
+  // Enhanced answer check using LessonValidation for traditional lessons
+  const handleEnhancedCheckAnswer = async (validationInstance: any) => {
+    let userInput;
+
+    if (currentContent.type === 'multiple-choice') {
+      userInput = { question_0: selectedAnswer };
+    } else if (currentContent.type === 'code') {
+      userInput = userCode;
+    }
+
+    try {
+      const result = await validationInstance.validateAnswer(userInput);
+
+      setFeedback({
+        correct: result.isCorrect,
+        message: result.feedback,
+      });
+
+      if (result.isCorrect) {
+        setTimeout(() => {
+          handleNext();
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error validating answer:', error);
+      setFeedback({
+        correct: false,
+        message: 'Error validating your answer. Please try again.',
+      });
+    }
+  };
+
   // Get lesson type icon and color
   const getLessonTypeInfo = (type: string) => {
     switch (type) {
