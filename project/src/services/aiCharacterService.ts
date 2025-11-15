@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { groqService } from './groqService';
 
 interface ConversationMessage {
   id: string;
