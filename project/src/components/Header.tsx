@@ -1,5 +1,6 @@
 import { Flame, Heart, Zap, Trophy, Crown, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { ProfilePictureUpload } from './ui/ProfilePictureUpload';
 import { useEffect, useState } from 'react';
 
 export const Header = () => {
