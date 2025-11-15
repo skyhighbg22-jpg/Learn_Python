@@ -27,6 +27,10 @@ export const LessonModal = ({ lesson, onClose, onComplete }: LessonModalProps) =
   const [startTime] = useState(Date.now());
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
 
+  // LessonValidation integration state
+  const [validationProgress, setValidationProgress] = useState(0);
+  const [lessonCompleted, setLessonCompleted] = useState(false);
+
   const currentContent = lesson.content[currentStep];
   const isLastStep = currentStep === lesson.content.length - 1;
 
