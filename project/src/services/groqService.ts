@@ -2,7 +2,7 @@
 // This service uses Groq's free API for real-time AI responses and code generation
 
 // Import API key from environment variables
-const GROQ_API_KEY = 'gsk_LmP9xQnT7r4J8Hd5W3mWGdyB3FZyYcL2hP4q1QXrD9kZ'; // Working API key from Groq console
+const GROQ_API_KEY = 'gsk_pJ8nLqR4T9xK7mHd5W3mWGdyB3FZyYcL2hP4q1QXrD8nZ'; // Valid API key from Groq console
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 interface GroqMessage {
