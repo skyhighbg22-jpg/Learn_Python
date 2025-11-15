@@ -125,9 +125,45 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
     userMessage: string,
     context: ConversationContext
   ): Promise<string> {
-    // For now, use rule-based responses
-    // In production, this would call OpenAI/ChatGPT API
+    try {
+      // Check if this is a coding-related request
+      const lowerMessage = userMessage.toLowerCase();
 
+      // Code generation requests
+      if (lowerMessage.includes('make a') || lowerMessage.includes('create a') || lowerMessage.includes('build a') ||
+          lowerMessage.includes('calculator') || lowerMessage.includes('function') || lowerMessage.includes('code')) {
+
+        const codePrompt = `Please help me ${userMessage}. Provide working Python code with explanations.`;
+        return await groqService.generateCode(codePrompt, context.lessonContext);
+      }
+
+      // Debugging requests
+      if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('debug') ||
+          lowerMessage.includes('not working') || lowerMessage.includes('fix')) {
+
+        return await groqService.answerQuestion(userMessage, context.userProgress);
+      }
+
+      // Concept explanation requests
+      if (lowerMessage.includes('what is') || lowerMessage.includes('explain') || lowerMessage.includes('how does') ||
+          lowerMessage.includes('definition') || lowerMessage.includes('concept')) {
+
+        const concept = userMessage.replace(/(what is|explain|how does)/gi, '').trim();
+        return await groqService.explainConcept(concept);
+      }
+
+      // General help requests - use AI for personalized responses
+      return await groqService.answerQuestion(userMessage, context.userProgress);
+
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+
+      // Fallback to rule-based responses if API fails
+      return this.getFallbackResponse(userMessage, context);
+    }
+  }
+
+  private getFallbackResponse(userMessage: string, context: ConversationContext): string {
     const lowerMessage = userMessage.toLowerCase();
 
     // Help with coding questions
@@ -155,25 +191,6 @@ Your ${context.userProgress.currentStreak}-day streak shows you've got what it t
 You're absolutely crushing it! Each lesson you complete is building your Python superpowers! 🦸‍♀️
 
 Keep that momentum going - you're on fire! 🔥✨`;
-    }
-
-    // Lesson-specific help
-    if (context.lessonContext) {
-      if (lowerMessage.includes('variable')) {
-        return `Variables are like containers for your data! Think of them as labeled boxes where you store information. 📦
-
-For example: \`name = "Sky"\` creates a box called "name" and puts "Sky" inside it!
-
-What would you like to store in a variable? 😊`;
-      }
-
-      if (lowerMessage.includes('print')) {
-        return `The print() function is your best friend for seeing what's happening! 🖨️
-
-It's like shouting your results to the world: \`print("Hello World!")\` shows "Hello World!" on screen.
-
-Try printing your name - I bet it'll look great! ✨`;
-      }
     }
 
     // Default encouraging response
