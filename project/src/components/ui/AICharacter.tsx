@@ -14,6 +14,7 @@ export const AICharacter: React.FC<AICharacterProps> = ({
   onToggle,
   lessonContext
 }) => {
+  const { user } = useAuth();
   const [conversation, setConversation] = useState<ConversationContext | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
