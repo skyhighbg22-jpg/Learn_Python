@@ -70,6 +70,24 @@ const MainApp = () => {
         <Header />
         <main className="flex-1 overflow-y-auto">{renderView()}</main>
       </div>
+
+      {/* Sidebar Ad */}
+      <div className="w-80 bg-slate-800 border-l border-slate-700 p-4 hidden lg:block">
+        <div className="sticky top-4 space-y-4">
+          <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Sponsored</h3>
+          <AdManager adType="sidebar" className="w-full" />
+
+          {/* Additional ads for longer pages */}
+          {(currentView === 'learn' || currentView === 'practice') && (
+            <>
+              <div className="mt-8">
+                <AdManager adType="sidebar" className="w-full" />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <AICharacter
         isOpen={isAIChatOpen}
         onToggle={() => setIsAIChatOpen(!isAIChatOpen)}
