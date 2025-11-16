@@ -12,6 +12,7 @@ import { PracticeView } from './components/views/PracticeView';
 import { FriendsView } from './components/views/FriendsView';
 import { AICharacter } from './components/ui/AICharacter';
 import { AdManager } from './components/ads/AdManager';
+import { ResponsiveAd, AutoAd } from './components/ads/AutoAd';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
