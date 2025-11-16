@@ -72,7 +72,20 @@ const MainApp = () => {
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">{renderView()}</main>
+
+        {/* Ad-Free Banner */}
+        <div className="px-6 py-4">
+          <AdFreeBanner
+            onUpgrade={() => setShowPaymentModal(true)}
+            className="max-w-4xl mx-auto"
+          />
+        </div>
+
+        <main className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="max-w-4xl mx-auto">
+            {renderView()}
+          </div>
+        </main>
       </div>
 
       {/* Sidebar Ad */}
@@ -97,8 +110,27 @@ const MainApp = () => {
               </div>
             </>
           )}
+
+          {/* Compact Upgrade Banner */}
+          <div className="mt-8">
+            <AdFreeBanner
+              onUpgrade={() => setShowPaymentModal(true)}
+              compact={true}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => {
+          setShowPaymentModal(false);
+          // Force a page reload or state refresh to update ad status
+          window.location.reload();
+        }}
+      />
 
       <AICharacter
         isOpen={isAIChatOpen}
