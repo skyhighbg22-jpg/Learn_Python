@@ -52,10 +52,10 @@ Your mission: Make Python learning fun, accessible, and rewarding! Always end wi
   }
 
   private async makeApiCall(messages: GroqMessage[]): Promise<string> {
-    // Check if API key is available
-    if (!GROQ_API_KEY) {
-      console.error('Groq API key not found in environment variables');
-      return "I'm having trouble with my AI connection right now. Please make sure the API key is configured! 🌟";
+    // Check if API key is available and valid
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'get_your_key_from_groq_console') {
+      console.error('Groq API key not configured or placeholder not replaced');
+      return "I'm having trouble with my AI connection right now. Please configure your API key in the .env file! 🌟";
     }
 
     const maxRetries = 3;
