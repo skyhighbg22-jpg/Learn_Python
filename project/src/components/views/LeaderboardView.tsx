@@ -171,9 +171,11 @@ export const LeaderboardView = () => {
                 </div>
               </div>
             );
+                    );
           })}
         </div>
       </div>
+      )}
 
       {profile && !leaderboard.find((e) => e.id === profile.id) && (
         <div className="mt-6 bg-slate-800 rounded-xl p-6 border border-blue-700">
@@ -183,16 +185,16 @@ export const LeaderboardView = () => {
               <span className="text-slate-400 font-bold">-</span>
             </div>
             <div className="col-span-5">
-              <p className="text-white font-semibold">{profile.display_name}</p>
+              <p className="text-white font-semibold">{profile.display_name || profile.username || 'You'}</p>
             </div>
             <div className="col-span-2">
               <span className="inline-block px-3 py-1 bg-slate-700 rounded-full text-slate-300 text-sm capitalize">
-                {profile.league}
+                {profile.league || 'Bronze'}
               </span>
             </div>
-            <div className="col-span-2 text-slate-300">{profile.current_streak} days</div>
+            <div className="col-span-2 text-slate-300">{profile.current_streak || 0} days</div>
             <div className="col-span-2 text-right">
-              <span className="text-yellow-500 font-bold text-lg">{profile.total_xp}</span>
+              <span className="text-yellow-500 font-bold text-lg">{profile.total_xp || 0}</span>
               <span className="text-slate-400 text-sm ml-1">XP</span>
             </div>
           </div>
