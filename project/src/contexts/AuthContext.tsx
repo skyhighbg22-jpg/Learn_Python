@@ -8,8 +8,6 @@ type AuthContextType = {
   loading: boolean;
   signUp: (email: string, password: string, username: string, fullName?: string) => Promise<{ user: User; needsVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<{ user: User; needsVerification: boolean }>;
-  signInWithGoogle: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
-  signInWithApple: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfileAvatar: (avatarUrl: string) => Promise<void>;
