@@ -96,12 +96,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         {loading ? (
           <>
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-            Processing...
+            Redirecting to Stripe...
           </>
         ) : (
           <>
             <Lock className="w-5 h-5" />
-            Buy Now
+            Pay with Stripe
           </>
         )}
       </button>
