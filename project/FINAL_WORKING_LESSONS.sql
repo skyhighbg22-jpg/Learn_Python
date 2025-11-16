@@ -115,4 +115,4 @@ SELECT
   'String and File Operations Lessons Added Successfully' as result,
   (SELECT COUNT(*) FROM lessons WHERE section_id = (SELECT id FROM sections WHERE path = 'string-operations')) as string_lessons,
   (SELECT COUNT(*) FROM lessons WHERE section_id = (SELECT id FROM sections WHERE path = 'file-operations')) as file_lessons,
-  (SELECT COUNT(*) FROM lessons WHERE id LIKE '7%' OR id LIKE '8%') as total_lessons_added;
+  (SELECT COUNT(*) FROM lessons WHERE id::text LIKE '7%' OR id::text LIKE '8%') as total_lessons_added;
