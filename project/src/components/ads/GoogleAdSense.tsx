@@ -13,7 +13,7 @@ interface GoogleAdSenseProps {
 // Check if ads are enabled
 const ADS_ENABLED = import.meta.env.VITE_ADS_ENABLED === 'true';
 const ADSENSE_ENABLED = import.meta.env.VITE_ADSENSE_ENABLED === 'true';
-const PUBLISHER_ID = import.meta.env.VITE_ADSENSE_PUBLISHER_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
+const PUBLISHER_ID = import.meta.env.VITE_ADSENSE_PUBLISHER_ID || 'ca-pub-7359040302001520';
 
 export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   adSlot,
