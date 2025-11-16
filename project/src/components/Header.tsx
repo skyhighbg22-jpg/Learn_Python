@@ -127,7 +127,9 @@ export const Header = () => {
         {/* Enhanced Profile Section */}
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-white font-semibold text-lg">{profile?.display_name}</p>
+            <p className="text-white font-semibold text-lg">
+              {profile?.display_name || profile?.username || 'New Python Coder'}
+            </p>
             <div className="flex items-center gap-2 justify-end">
               {getLeagueIcon(profile?.league || 'Bronze')}
               <span className={`text-sm font-medium capitalize ${getLeagueColor(profile?.league || 'Bronze')}`}>
