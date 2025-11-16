@@ -225,7 +225,18 @@ export class LearningPathService {
             userProgress || []
           );
 
-          const isUnlocked = profile.total_xp >= 1500;
+          // Enhanced unlock logic: XP requirement + prerequisite completion
+          const hasPrerequisites = dataStructuresProgress.progressPercentage >= 80; // 80% of data structures
+          const isUnlocked = profile.total_xp >= 1500 && hasPrerequisites;
+
+          // Debug logging for unlock logic
+          console.log('Advanced Python Unlock Check:', {
+            userXP: profile.total_xp,
+            xpRequired: 1500,
+            dataStructuresProgress: dataStructuresProgress.progressPercentage,
+            hasPrerequisites,
+            isUnlocked
+          });
 
           paths.push({
             id: 'advanced-python',
