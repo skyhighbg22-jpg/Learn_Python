@@ -49,6 +49,20 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
     checkAdFreeStatus();
   }, []);
 
+  // Listen for user authentication changes to check ad-free status
+  useEffect(() => {
+    const handleAuthChange = () => {
+      checkAdFreeStatus();
+    };
+
+    // Listen for authentication changes
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
   const updateAdSettings = (newSettings: Partial<AdSettings>) => {
     const updated = { ...adSettings, ...newSettings };
     setAdSettings(updated);
