@@ -96,13 +96,13 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
 
 // Ad slot constants for easy management
 export const AD_SLOTS = {
-  HEADER_BANNER: '1234567890', // Replace with actual AdSense slot IDs
-  SIDEBAR_VERTICAL: '0987654321',
-  FOOTER_BANNER: '1111111111',
-  LESSON_CONTENT: '2222222222',
-  CHALLENGE_BETWEEN: '3333333333',
-  PROFILE_SIDE: '4444444444',
-  LEADERBOARD_TOP: '5555555555',
+  HEADER_BANNER: import.meta.env.VITE_AD_SLOT_HEADER_BANNER || '1234567890',
+  SIDEBAR_VERTICAL: import.meta.env.VITE_AD_SLOT_SIDEBAR_VERTICAL || '0987654321',
+  FOOTER_BANNER: import.meta.env.VITE_AD_SLOT_FOOTER_BANNER || '1111111111',
+  LESSON_CONTENT: import.meta.env.VITE_AD_SLOT_LESSON_CONTENT || '2222222222',
+  CHALLENGE_BETWEEN: import.meta.env.VITE_AD_SLOT_CHALLENGE_BETWEEN || '3333333333',
+  PROFILE_SIDE: import.meta.env.VITE_AD_SLOT_PROFILE_SIDE || '4444444444',
+  LEADERBOARD_TOP: import.meta.env.VITE_AD_SLOT_LEADERBOARD_TOP || '5555555555',
 } as const;
 
 // Predefined ad components for common placements
