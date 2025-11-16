@@ -21,6 +21,7 @@ const MainApp = () => {
   const [currentView, setCurrentView] = useState('learn');
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [lessonContext, setLessonContext] = useState<string>();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Handle keyboard shortcut for AI chat (Ctrl/Cmd + K)
   useEffect(() => {
