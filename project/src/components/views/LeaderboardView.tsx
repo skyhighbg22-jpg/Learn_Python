@@ -122,17 +122,24 @@ export const LeaderboardView = () => {
         <p className="text-slate-400">Top learners this week</p>
       </div>
 
-      <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
-        <div className="bg-slate-900 px-6 py-4 grid grid-cols-12 gap-4 font-semibold text-slate-400 text-sm">
-          <div className="col-span-1">Rank</div>
-          <div className="col-span-5">User</div>
-          <div className="col-span-2">League</div>
-          <div className="col-span-2">Streak</div>
-          <div className="col-span-2 text-right">Total XP</div>
+      {leaderboard.length === 0 ? (
+        <div className="bg-slate-800 rounded-xl p-12 border border-slate-700 text-center">
+          <Trophy className="text-slate-600 mx-auto mb-4" size={64} />
+          <p className="text-slate-400 text-lg">No leaderboard data available</p>
+          <p className="text-slate-500 text-sm mt-2">Start learning to appear on the leaderboard!</p>
         </div>
+      ) : (
+        <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
+          <div className="bg-slate-900 px-6 py-4 grid grid-cols-12 gap-4 font-semibold text-slate-400 text-sm">
+            <div className="col-span-1">Rank</div>
+            <div className="col-span-5">User</div>
+            <div className="col-span-2">League</div>
+            <div className="col-span-2">Streak</div>
+            <div className="col-span-2 text-right">Total XP</div>
+          </div>
 
-        <div className="divide-y divide-slate-700">
-          {leaderboard.map((entry, index) => {
+          <div className="divide-y divide-slate-700">
+            {leaderboard.map((entry, index) => {
             const rank = index + 1;
             const isCurrentUser = entry.id === profile?.id;
 
