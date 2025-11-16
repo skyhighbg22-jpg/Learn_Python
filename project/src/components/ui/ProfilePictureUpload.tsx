@@ -36,7 +36,7 @@ export const ProfilePictureUpload = ({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      onAvatarChange(''); // Clear avatar if invalid
+      onAvatarChange(null); // Clear avatar if invalid
       return;
     }
 
