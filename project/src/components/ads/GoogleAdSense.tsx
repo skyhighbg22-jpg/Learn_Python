@@ -60,13 +60,18 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
     }
   }, [adSlot]);
 
+  // Don't render ads if they're disabled
+  if (!ADS_ENABLED || !ADSENSE_ENABLED) {
+    return null;
+  }
+
   return (
     <div className={`ad-container ${className}`}>
       <ins
         ref={adRef}
         className="adsbygoogle"
         style={style}
-        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // Replace with your AdSense publisher ID
+        data-ad-client={PUBLISHER_ID}
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive={fullWidthResponsive.toString()}
