@@ -217,8 +217,116 @@ export class LearningPathService {
           });
         }
 
-        // Path 4: Advanced Python
-        const advancedSections = sections.slice(7);
+        // Path 4: String Operations (specialized)
+        const stringSections = sections.filter(section => section.path === 'string-operations');
+        if (stringSections.length > 0) {
+          const stringProgress = this.calculatePathProgress(
+            stringSections,
+            userProgress || []
+          );
+
+          // String operations unlock after fundamentals (60% progress)
+          const hasPrerequisites = fundamentalProgress.progressPercentage >= 60;
+          const isUnlocked = profile.total_xp >= 300 && hasPrerequisites;
+
+          console.log('String Operations Unlock Check:', {
+            userXP: profile.total_xp,
+            xpRequired: 300,
+            fundamentalProgress: fundamentalProgress.progressPercentage,
+            hasPrerequisites,
+            isUnlocked
+          });
+
+          paths.push({
+            id: 'string-operations',
+            name: 'String Operations',
+            description: 'Master text manipulation, string methods, and text processing techniques',
+            icon: '📝',
+            color: 'from-indigo-500 to-purple-500',
+            difficulty: 'INTERMEDIATE',
+            totalLessons: stringSections.reduce((sum, section) => {
+              return sum + (section.lesson_count || 10);
+            }, 0),
+            completedLessons: stringProgress.completedLessons,
+            estimatedMinutes: stringSections.reduce((sum, section) => {
+              return sum + (section.estimated_time || 200);
+            }, 0),
+            averageTimePerLesson: 20,
+            progressPercentage: isUnlocked ? stringProgress.progressPercentage : 0,
+            status: isUnlocked ? stringProgress.status : 'not_started',
+            prerequisites: ['python-fundamentals'],
+            skills: [
+              { name: 'String Methods', level: 0 },
+              { name: 'Text Processing', level: 0 },
+              { name: 'Regular Expressions', level: 0 }
+            ],
+            isUnlocked,
+            timeToComplete: isUnlocked ?
+              this.formatTime(stringProgress.remainingTime) :
+              this.formatTime(stringSections.reduce((sum, section) => sum + (section.estimated_time || 200), 0)),
+            xpReward: 700,
+            category: 'Specialized Skills'
+          });
+        }
+
+        // Path 5: File Operations (specialized)
+        const fileSections = sections.filter(section => section.path === 'file-operations');
+        if (fileSections.length > 0) {
+          const fileProgress = this.calculatePathProgress(
+            fileSections,
+            userProgress || []
+          );
+
+          // File operations unlock after fundamentals and control flow (70% combined progress)
+          const combinedFundamentalProgress = (fundamentalProgress.progressPercentage + controlFlowProgress.progressPercentage) / 2;
+          const hasPrerequisites = combinedFundamentalProgress >= 70;
+          const isUnlocked = profile.total_xp >= 500 && hasPrerequisites;
+
+          console.log('File Operations Unlock Check:', {
+            userXP: profile.total_xp,
+            xpRequired: 500,
+            combinedFundamentalProgress,
+            hasPrerequisites,
+            isUnlocked
+          });
+
+          paths.push({
+            id: 'file-operations',
+            name: 'File Operations',
+            description: 'Learn to read, write, and manage files and directories with Python',
+            icon: '📁',
+            color: 'from-teal-500 to-green-500',
+            difficulty: 'INTERMEDIATE',
+            totalLessons: fileSections.reduce((sum, section) => {
+              return sum + (section.lesson_count || 10);
+            }, 0),
+            completedLessons: fileProgress.completedLessons,
+            estimatedMinutes: fileSections.reduce((sum, section) => {
+              return sum + (section.estimated_time || 220);
+            }, 0),
+            averageTimePerLesson: 22,
+            progressPercentage: isUnlocked ? fileProgress.progressPercentage : 0,
+            status: isUnlocked ? fileProgress.status : 'not_started',
+            prerequisites: ['python-fundamentals', 'control-flow-mastery'],
+            skills: [
+              { name: 'File I/O', level: 0 },
+              { name: 'Directory Management', level: 0 },
+              { name: 'Error Handling', level: 0 }
+            ],
+            isUnlocked,
+            timeToComplete: isUnlocked ?
+              this.formatTime(fileProgress.remainingTime) :
+              this.formatTime(fileSections.reduce((sum, section) => sum + (section.estimated_time || 220), 0)),
+            xpReward: 800,
+            category: 'Specialized Skills'
+          });
+        }
+
+        // Path 6: Advanced Python
+        const advancedSections = sections.filter(section =>
+          !['python-basics', 'variables-data-types', 'control-flow', 'functions-modules',
+            'lists-data-structures', 'loops-iteration', 'string-operations', 'file-operations'].includes(section.path)
+        );
         if (advancedSections.length > 0) {
           const advancedProgress = this.calculatePathProgress(
             advancedSections,
