@@ -6,8 +6,6 @@ import {
   Eye,
   EyeOff,
   User,
-  Chrome,
-  Apple,
   AlertCircle,
   CheckCircle,
   ArrowLeft,
