@@ -81,7 +81,9 @@ const MainApp = () => {
 function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <AdProvider>
+        <MainApp />
+      </AdProvider>
     </AuthProvider>
   );
 }
