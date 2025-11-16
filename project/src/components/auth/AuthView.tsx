@@ -20,7 +20,7 @@ type EmailStatus = 'idle' | 'sending' | 'sent' | 'error';
 export const AuthView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signUp, signIn, signInWithGoogle, signInWithApple, resetPassword, resendVerificationEmail } = useAuth();
+  const { signUp, signIn, resetPassword, resendVerificationEmail } = useAuth();
   const { addNotification } = useNotifications();
 
   const [mode, setMode] = useState<AuthMode>('signin');
