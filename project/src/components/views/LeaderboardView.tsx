@@ -16,22 +16,53 @@ export const LeaderboardView = () => {
   const { profile } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     loadLeaderboard();
   }, []);
 
   const loadLeaderboard = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, username, display_name, total_xp, league, current_streak')
-      .order('total_xp', { ascending: false })
-      .limit(50);
+    try {
+      setError(null);
+      setLoading(true);
 
-    if (data) {
-      setLeaderboard(data);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, total_xp, league, current_streak')
+        .order('total_xp', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      // Add data validation
+      if (!data || !Array.isArray(data)) {
+        throw new Error('Invalid data received from server');
+      }
+
+      // Filter out invalid entries and ensure required fields
+      const validLeaderboardData = data
+        .filter(user => user && user.id && user.username) // Filter out invalid entries
+        .map(user => ({
+          ...user,
+          display_name: user.display_name || user.username || 'Anonymous',
+          total_xp: Math.max(0, user.total_xp || 0),
+          league: user.league || 'Bronze',
+          current_streak: Math.max(0, user.current_streak || 0)
+        }));
+
+      setLeaderboard(validLeaderboardData);
+      setRetryCount(0);
+    } catch (error: any) {
+      console.error('Error loading leaderboard:', error);
+      setError(error.message || 'Failed to load leaderboard');
+      setRetryCount(prev => prev + 1);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getRankIcon = (rank: number) => {
