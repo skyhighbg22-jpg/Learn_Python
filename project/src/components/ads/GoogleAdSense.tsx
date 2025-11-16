@@ -27,6 +27,11 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   const adRef = useRef<HTMLModElement>(null);
 
   useEffect(() => {
+    // Don't load ads if they're disabled
+    if (!ADS_ENABLED || !ADSENSE_ENABLED) {
+      return;
+    }
+
     const loadAd = () => {
       try {
         if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
