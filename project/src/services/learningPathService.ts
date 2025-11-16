@@ -119,7 +119,18 @@ export class LearningPathService {
             userProgress || []
           );
 
-          const isUnlocked = profile.total_xp >= 200; // After completing fundamentals
+          // Enhanced unlock logic: XP requirement + prerequisite completion
+          const hasPrerequisites = fundamentalProgress.progressPercentage >= 80; // 80% of fundamentals
+          const isUnlocked = profile.total_xp >= 200 && hasPrerequisites;
+
+          // Debug logging for unlock logic
+          console.log('Control Flow Unlock Check:', {
+            userXP: profile.total_xp,
+            xpRequired: 200,
+            fundamentalProgress: fundamentalProgress.progressPercentage,
+            hasPrerequisites,
+            isUnlocked
+          });
 
           paths.push({
             id: 'control-flow-mastery',
