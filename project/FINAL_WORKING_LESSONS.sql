@@ -110,9 +110,15 @@ ON CONFLICT (id) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_string_file_lessons_section ON lessons(section_id);
 CREATE INDEX IF NOT EXISTS idx_string_file_lessons_order ON lessons(order_index);
 
--- Summary query to verify lessons were added
-SELECT
-  'String and File Operations Lessons Added Successfully' as result,
-  (SELECT COUNT(*) FROM lessons WHERE section_id = (SELECT id FROM sections WHERE path = 'string-operations')) as string_lessons,
-  (SELECT COUNT(*) FROM lessons WHERE section_id = (SELECT id FROM sections WHERE path = 'file-operations')) as file_lessons,
-  (SELECT COUNT(*) FROM lessons WHERE id::text LIKE '7%' OR id::text LIKE '8%') as total_lessons_added;
+-- Summary queries to verify lessons were added
+SELECT 'String Operations Lessons Added' as status, COUNT(*) as count
+FROM lessons
+WHERE section_id = (SELECT id FROM sections WHERE path = 'string-operations');
+
+SELECT 'File Operations Lessons Added' as status, COUNT(*) as count
+FROM lessons
+WHERE section_id = (SELECT id FROM sections WHERE path = 'file-operations');
+
+SELECT 'Total New Lessons Added' as status, COUNT(*) as count
+FROM lessons
+WHERE id::text LIKE '7%' OR id::text LIKE '8%';
