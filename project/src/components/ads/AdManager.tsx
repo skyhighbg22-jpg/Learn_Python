@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Close } from 'lucide-react';
 import { useAd } from '../../contexts/AdContext';
 import { GoogleAdSense, HeaderBanner, SidebarAd, FooterAd, LessonContentAd } from './GoogleAdSense';
+import { AutoAd, ResponsiveAd, InArticleAd } from './AutoAd';
 
 interface AdManagerProps {
   adType?: 'banner' | 'sidebar' | 'footer' | 'lesson' | 'interstitial';
