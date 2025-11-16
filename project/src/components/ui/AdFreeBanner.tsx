@@ -76,7 +76,7 @@ export const AdFreeBanner: React.FC<AdFreeBannerProps> = ({
                 <Lock className="w-4 h-4 text-blue-300" />
                 <span className="text-sm font-semibold">One-Time $5</span>
               </div>
-              <p className="text-xs opacity-90">Pay once, benefit forever</p>
+              <p className="text-xs opacity-90">Pay once, benefit forever (~₹50)</p>
             </div>
           </div>
         </div>
