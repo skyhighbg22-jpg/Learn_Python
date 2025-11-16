@@ -3,8 +3,8 @@ import { Camera, Upload, X, User, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ProfilePictureUploadProps {
-  currentAvatar?: string;
-  onAvatarChange: (avatarUrl: string) => void;
+  currentAvatar?: string | null;
+  onAvatarChange: (avatarUrl: string | null) => void;
   userId: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
