@@ -60,8 +60,8 @@ export class PaymentService {
     return null;
   }
 
-  // Create payment order with Razorpay
-  static async createPaymentOrder(planId: string, userId: string): Promise<PaymentResponse> {
+  // Create payment session with Stripe
+  static async createPaymentSession(planId: string, userId: string): Promise<PaymentResponse> {
     try {
       const plan = this.getPlan(planId);
       if (!plan) {
@@ -87,35 +87,35 @@ export class PaymentService {
         return { success: false, error: 'Failed to create payment order' };
       }
 
-      // Call Razorpay API to create order
-      const response = await fetch('/api/create-payment-order', {
+      // Call Stripe API to create checkout session
+      const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: plan.price * 100, // Convert to paise (Razorpay uses smallest currency unit)
-          currency: 'INR',
-          receipt: order.id,
-          notes: {
-            planId: plan.id,
-            userId: userId
-          }
+          amount: this.AD_FREE_PRICE_CENTS, // $5.00 in cents
+          currency: 'usd',
+          order_id: order.id,
+          plan_id: plan.id,
+          user_id: userId,
+          success_url: `${window.location.origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/payment/canceled`
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Razorpay API error:', errorData);
-        return { success: false, error: 'Payment service unavailable' };
+        console.error('Stripe API error:', errorData);
+        return { success: false, error: errorData.error || 'Payment service unavailable' };
       }
 
-      const razorpayOrder = await response.json();
+      const stripeSession = await response.json();
 
       return {
         success: true,
         order_id: order.id,
-        payment_url: razorpayOrder.payment_url || null
+        payment_url: stripeSession.url
       };
 
     } catch (error) {
