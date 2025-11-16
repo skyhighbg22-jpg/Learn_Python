@@ -281,10 +281,29 @@ export const AuthView = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                      title={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
+                    {showPassword ? (
+                      <>
+                        <EyeOff className="w-3 h-3" />
+                        <span>Password is visible</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3 h-3" />
+                        <span>Click the eye icon to show password</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
