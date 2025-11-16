@@ -172,7 +172,18 @@ export class LearningPathService {
             userProgress || []
           );
 
-          const isUnlocked = profile.total_xp >= 800;
+          // Enhanced unlock logic: XP requirement + prerequisite completion
+          const hasPrerequisites = controlFlowProgress.progressPercentage >= 80; // 80% of control flow
+          const isUnlocked = profile.total_xp >= 800 && hasPrerequisites;
+
+          // Debug logging for unlock logic
+          console.log('Data Structures Unlock Check:', {
+            userXP: profile.total_xp,
+            xpRequired: 800,
+            controlFlowProgress: controlFlowProgress.progressPercentage,
+            hasPrerequisites,
+            isUnlocked
+          });
 
           paths.push({
             id: 'data-structures-algorithms',
