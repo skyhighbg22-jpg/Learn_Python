@@ -97,7 +97,7 @@ export const AdFreeBanner: React.FC<AdFreeBannerProps> = ({
 
           <div className="text-xs opacity-90 text-center lg:text-right">
             <Lock className="w-3 h-3 inline mr-1" />
-            Secure payment by Razorpay
+            Secure payment by Stripe
           </div>
         </div>
       </div>
