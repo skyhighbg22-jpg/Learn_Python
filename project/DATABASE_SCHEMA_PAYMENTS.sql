@@ -136,4 +136,3 @@ LEFT JOIN (
 
 -- Grant permissions to authenticated users
 GRANT SELECT ON user_payment_summary TO authenticated;
-GRANT SELECT ON is_user_ad_free(user_uuid UUID) TO authenticated;
