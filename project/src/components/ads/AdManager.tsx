@@ -35,9 +35,13 @@ export const AdManager: React.FC<AdManagerProps> = ({
       case 'footer':
         return <FooterAd className={className} />;
       case 'lesson':
-        return <LessonContentAd className={className} />;
+        return <ResponsiveAd className={className} />;
+      case 'responsive':
+        return <ResponsiveAd className={className} />;
+      case 'inarticle':
+        return <InArticleAd className={className} />;
       default:
-        return <HeaderBanner className={className} />;
+        return <AutoAd className={className} height="250px" width="300px" />;
     }
   };
 
