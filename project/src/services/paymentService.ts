@@ -124,22 +124,16 @@ export class PaymentService {
     }
   }
 
-  // Process payment callback
-  static async processPaymentCallback(paymentData: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-    planId: string;
-    userId: string;
-  }): Promise<PaymentResponse> {
+  // Process Stripe payment success callback
+  static async processStripePaymentSuccess(sessionId: string): Promise<PaymentResponse> {
     try {
-      // Verify payment signature
-      const response = await fetch('/api/verify-payment', {
+      // Verify payment with backend
+      const response = await fetch('/api/verify-stripe-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(paymentData)
+        body: JSON.stringify({ session_id: sessionId })
       });
 
       if (!response.ok) {
@@ -154,22 +148,26 @@ export class PaymentService {
       }
 
       // Update payment order status
-      await supabase
-        .from('payment_orders')
-        .update({
-          status: 'paid',
-          payment_id: paymentData.razorpay_payment_id,
-          paid_at: new Date().toISOString()
-        })
-        .eq('id', paymentData.razorpay_order_id);
+      if (verification.order_id) {
+        await supabase
+          .from('payment_orders')
+          .update({
+            status: 'paid',
+            payment_id: verification.payment_intent_id,
+            paid_at: new Date().toISOString()
+          })
+          .eq('id', verification.order_id);
+      }
 
       // Grant ad-free access to user
-      await this.grantAdFreeAccess(paymentData.userId, paymentData.planId);
+      if (verification.user_id && verification.plan_id) {
+        await this.grantAdFreeAccess(verification.user_id, verification.plan_id);
+      }
 
       return { success: true };
 
     } catch (error) {
-      console.error('Payment callback error:', error);
+      console.error('Stripe payment callback error:', error);
       return { success: false, error: 'Payment processing error' };
     }
   }
