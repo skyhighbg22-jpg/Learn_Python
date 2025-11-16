@@ -44,6 +44,9 @@ export class PaymentService {
     duration: 'lifetime'
   };
 
+  // Price in cents for Stripe (₹50 = 50 USD cents approximated for simplicity)
+  private static readonly AD_FREE_PRICE_CENTS = 500; // $5.00 USD (converted from ₹50)
+
   // Get available plans
   static getPlans(): PaymentPlan[] {
     return [this.AD_FREE_PLAN];
