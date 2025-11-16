@@ -78,11 +78,19 @@ const MainApp = () => {
           <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Sponsored</h3>
           <AdManager adType="sidebar" className="w-full" />
 
+          {/* Test Auto Ad */}
+          <div className="mt-4">
+            <AutoAd height="250px" width="300px" className="w-full" />
+          </div>
+
           {/* Additional ads for longer pages */}
           {(currentView === 'learn' || currentView === 'practice') && (
             <>
               <div className="mt-8">
-                <AdManager adType="sidebar" className="w-full" />
+                <ResponsiveAd className="w-full" />
+              </div>
+              <div className="mt-4">
+                <AutoAd height="250px" width="300px" className="w-full" />
               </div>
             </>
           )}
