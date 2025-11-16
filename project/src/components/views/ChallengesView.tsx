@@ -252,6 +252,18 @@ export const ChallengesView = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Add loading timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setError('Loading timeout - please try again');
+      }
+    }, 30000); // 30 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   // Load data based on selected tab
   useEffect(() => {
     loadTodayChallenge();
