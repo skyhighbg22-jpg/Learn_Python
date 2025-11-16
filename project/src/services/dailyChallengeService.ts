@@ -38,15 +38,28 @@ class DailyChallengeService {
   private readonly STREAK_BONUS = 100; // Bonus for 7-day streak
 
   async getTodayChallenges(): Promise<DailyChallenge[]> {
-    // In production, this would fetch from database
-    // For now, return sample challenges
-    const today = new Date();
-    const dayOfWeek = today.getDay();
+    try {
+      // In production, this would fetch from database
+      // For now, return sample challenges
+      const today = new Date();
+      const dayOfWeek = today.getDay();
 
-    // Generate challenges based on day of week for variety
-    const challenges = this.generateChallengesForDay(dayOfWeek);
+      // Add cache busting to prevent stale data
+      const cacheBuster = Date.now();
+      console.log(`Loading challenges for day ${dayOfWeek} (cache: ${cacheBuster})`);
 
-    return challenges;
+      // Generate challenges based on day of week for variety
+      const challenges = this.generateChallengesForDay(dayOfWeek);
+
+      if (!challenges || challenges.length === 0) {
+        throw new Error('No challenges available for today');
+      }
+
+      return challenges;
+    } catch (error) {
+      console.error('Error loading today\'s challenges:', error);
+      throw new Error(`Failed to load challenges: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private generateChallengesForDay(dayOfWeek: number): DailyChallenge[] {
