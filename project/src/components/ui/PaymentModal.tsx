@@ -37,10 +37,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     try {
       setLoading(true);
-      const response = await PaymentService.createPaymentOrder(plan.id, profile.id);
+      const response = await PaymentService.createPaymentSession(plan.id, profile.id);
 
       if (response.success && response.payment_url) {
-        // Redirect to payment page
+        // Redirect to Stripe checkout
         window.location.href = response.payment_url;
       } else {
         setError(response.error || 'Payment initialization failed');
