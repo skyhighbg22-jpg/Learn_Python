@@ -83,8 +83,8 @@ export const AdFreeBanner: React.FC<AdFreeBannerProps> = ({
 
         <div className="flex flex-col items-center lg:items-end gap-3">
           <div className="text-center lg:text-right">
-            <div className="text-3xl font-bold mb-1">₹50</div>
-            <div className="text-sm opacity-90">One-time payment</div>
+            <div className="text-3xl font-bold mb-1">$5</div>
+            <div className="text-sm opacity-90">One-time payment (~₹50)</div>
           </div>
 
           <button
