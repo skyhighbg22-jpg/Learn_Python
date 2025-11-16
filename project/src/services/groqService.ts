@@ -246,6 +246,37 @@ User Context:
 
     return await this.makeApiCall(messages);
   }
+
+  // Health check method to test API connectivity
+  async checkApiHealth(): Promise<{ healthy: boolean; error?: string }> {
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'get_your_key_from_groq_console') {
+      return { healthy: false, error: 'API key not configured' };
+    }
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama3-70b-8192',
+          messages: [{ role: 'user', content: 'Hi' }],
+          temperature: 0.7,
+          max_tokens: 10,
+        }),
+      });
+
+      if (!response.ok) {
+        return { healthy: false, error: `API error: ${response.status}` };
+      }
+
+      return { healthy: true };
+    } catch (error) {
+      return { healthy: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 }
 
 export const groqService = new GroqService();
