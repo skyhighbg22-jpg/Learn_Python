@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AdProvider } from './contexts/AdContext';
 import { AuthForm } from './components/AuthForm';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
