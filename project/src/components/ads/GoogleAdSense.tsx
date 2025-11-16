@@ -10,6 +10,11 @@ interface GoogleAdSenseProps {
   adLayoutKey?: string;
 }
 
+// Check if ads are enabled
+const ADS_ENABLED = import.meta.env.VITE_ADS_ENABLED === 'true';
+const ADSENSE_ENABLED = import.meta.env.VITE_ADSENSE_ENABLED === 'true';
+const PUBLISHER_ID = import.meta.env.VITE_ADSENSE_PUBLISHER_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
+
 export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   adSlot,
   adFormat = 'auto',
