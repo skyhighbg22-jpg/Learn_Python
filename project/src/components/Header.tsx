@@ -179,6 +179,11 @@ export const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Header Ad Banner */}
+      <div className="mt-4">
+        <AdManager adType="banner" className="w-full" />
+      </div>
     </div>
   );
 };
