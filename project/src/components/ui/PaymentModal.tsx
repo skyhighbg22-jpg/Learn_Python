@@ -76,8 +76,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       </div>
 
       <div className="mb-6">
-        <div className="text-4xl font-bold mb-2">₹{plan.price}</div>
-        <div className="text-sm opacity-90">One-time payment</div>
+        <div className="text-4xl font-bold mb-2">$5</div>
+        <div className="text-sm opacity-90">One-time payment (~₹50)</div>
       </div>
 
       <div className="space-y-3 mb-6">
