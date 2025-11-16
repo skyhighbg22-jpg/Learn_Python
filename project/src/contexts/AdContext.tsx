@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { PaymentService } from '../services/paymentService';
 
 interface AdSettings {
   showAds: boolean;
