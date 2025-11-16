@@ -81,7 +81,36 @@ export const LeaderboardView = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-slate-400">Loading leaderboard...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="text-slate-400">Loading leaderboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state with retry functionality
+  if (error && retryCount > 2) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <div className="w-16 h-16 rounded-full bg-red-500 bg-opacity-20 flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 text-red-400" />
+        </div>
+        <div className="text-center">
+          <p className="text-red-400 text-lg font-medium mb-2">Unable to load leaderboard</p>
+          <p className="text-slate-400 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setRetryCount(0);
+              loadLeaderboard();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
