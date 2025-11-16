@@ -317,5 +317,74 @@ class DailyChallengeService {
   }
 }
 
+// API Health check method to test service availability
+async checkApiHealth(): Promise<{ healthy: boolean; error?: string }> {
+  try {
+    // Test basic service functionality
+    const testChallenges = await this.getTodayChallenges();
+    if (!testChallenges || testChallenges.length === 0) {
+      return { healthy: false, error: 'No challenges available' };
+    }
+    return { healthy: true };
+  } catch (error) {
+    return {
+      healthy: false,
+      error: error instanceof Error ? error.message : 'Unknown service error'
+    };
+  }
+}
+
+// Check for network connectivity
+private isOnline(): boolean {
+  return navigator.onLine;
+}
+
+// Get offline-aware challenge data with caching
+async getTodayChallengesWithFallback(): Promise<DailyChallenge[]> {
+  try {
+    if (!this.isOnline()) {
+      console.log('Device offline, using cached challenges');
+      return this.getCachedChallenges();
+    }
+
+    const challenges = await this.getTodayChallenges();
+    this.cacheChallenges(challenges);
+    return challenges;
+  } catch (error) {
+    console.warn('Failed to load fresh challenges, attempting fallback:', error);
+    return this.getCachedChallenges();
+  }
+}
+
+// Cache management for offline scenarios
+private cacheChallenges(challenges: DailyChallenge[]): void {
+  try {
+    localStorage.setItem('daily_challenges_cache', JSON.stringify({
+      challenges,
+      cachedAt: Date.now()
+    }));
+  } catch (error) {
+    console.warn('Failed to cache challenges:', error);
+  }
+}
+
+private getCachedChallenges(): DailyChallenge[] {
+  try {
+    const cached = localStorage.getItem('daily_challenges_cache');
+    if (cached) {
+      const { challenges, cachedAt } = JSON.parse(cached);
+      // Use cached data if less than 24 hours old
+      if (Date.now() - cachedAt < 24 * 60 * 60 * 1000) {
+        return challenges;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to read cached challenges:', error);
+  }
+
+  // Return basic fallback challenges if no cache available
+  return this.generateChallengesForDay(new Date().getDay());
+}
+
 export const dailyChallengeService = new DailyChallengeService();
 export type { DailyChallenge, WeeklyRotation, UserStreakData };
