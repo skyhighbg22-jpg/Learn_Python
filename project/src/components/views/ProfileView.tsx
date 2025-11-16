@@ -147,13 +147,18 @@ export const ProfileView = () => {
     );
   }
 
-  // Load profile data
+  // Load profile data with automatic retry and caching
   useEffect(() => {
-    const loadProfileData = async () => {
+    const loadProfileData = async (retryCount = 0) => {
       if (!profile?.id) return;
 
       try {
         setLoading(true);
+        setError(null);
+
+        // Cache the current profile data
+        cacheProfileData(profile);
+
         const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData, rewards, celebrations] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
           AchievementService.getAchievementStats(profile.id),
@@ -168,29 +173,52 @@ export const ProfileView = () => {
           Promise.resolve([])  // TODO: AchievementService.getUnviewedCelebrations(profile.id)
         ]);
 
-        setAchievementProgress(progress);
-        setAchievementStats(stats);
-        setSkills(skillData);
-        setLearningPaths(pathData);
-        setProfileStats(analytics);
+        setAchievementProgress(progress || []);
+        setAchievementStats(stats || {});
+        setSkills(skillData || []);
+        setLearningPaths(pathData || []);
+        setProfileStats(analytics || {});
         setUserRanking(userRanking);
-        setLeagueUsers(leaderboardData);
-        setSpecialRewards(rewards);
-        setUnviewedCelebrations(celebrations);
+        setLeagueUsers(leaderboardData || []);
+        setSpecialRewards(rewards || []);
+        setUnviewedCelebrations(celebrations || []);
 
         // Show first unviewed celebration
-        if (celebrations.length > 0) {
+        if (celebrations && celebrations.length > 0) {
           setCelebrationAchievement(celebrations[0]);
           setShowCelebration(true);
         }
-      } catch (error) {
-        console.error('Error loading profile data:', error);
+
+        // Reset retry count on success
+        setProfileLoadRetry(0);
+      } catch (error: any) {
+        console.error(`Error loading profile data (attempt ${retryCount + 1}):`, error);
+
+        // Automatic retry with exponential backoff (max 3 attempts)
+        if (retryCount < 3) {
+          const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          setTimeout(() => loadProfileData(retryCount + 1), delay);
+        } else {
+          setError('Failed to load profile data. Some features may be unavailable.');
+          // Set default values to prevent complete failure
+          setAchievementProgress([]);
+          setAchievementStats({});
+          setSkills([]);
+          setLearningPaths([]);
+          setProfileStats(null);
+          setUserRanking(null);
+          setLeagueUsers([]);
+          setSpecialRewards([]);
+          setUnviewedCelebrations([]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfileData();
+    if (profile) {
+      loadProfileData();
+    }
   }, [profile?.id]);
 
   const stats = [
