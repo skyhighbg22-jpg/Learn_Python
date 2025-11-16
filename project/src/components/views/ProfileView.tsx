@@ -15,6 +15,8 @@ export const ProfileView = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [profileLoadRetry, setProfileLoadRetry] = useState(0);
   const [skills, setSkills] = useState<SkillData[]>([]);
   const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
   const [profileStats, setProfileStats] = useState<any>(null);
