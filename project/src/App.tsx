@@ -11,6 +11,7 @@ import { ChallengesView } from './components/views/ChallengesView';
 import { PracticeView } from './components/views/PracticeView';
 import { FriendsView } from './components/views/FriendsView';
 import { AICharacter } from './components/ui/AICharacter';
+import { AdManager } from './components/ads/AdManager';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
