@@ -118,28 +118,7 @@ export const AuthView = () => {
     }
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError('');
-
-    try {
-      if (provider === 'google') {
-        await signInWithGoogle();
-      } else if (provider === 'apple') {
-        await signInWithApple();
-      }
-
-      addNotification({
-        type: 'auth',
-        title: 'OAuth Sign-In',
-        message: `Signing in with ${provider}...`,
-      });
-    } catch (error: any) {
-      setError(error.message || `Failed to sign in with ${provider}. Please try again.`);
-      setLoading(false);
-    }
-  };
-
+  
   const handleResendVerification = async () => {
     setEmailStatus('sending');
     setError('');
