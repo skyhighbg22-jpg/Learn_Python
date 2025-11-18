@@ -55,18 +55,15 @@ class AICharacterService {
 
     this.conversations.set(conversationId, context);
 
-    // Generate welcome message with variety
     let welcomeContent = this.generateWelcomeMessage(userProgress);
     let attempts = 0;
     const maxAttempts = 3;
 
-    // Try to generate a unique welcome message
     while (!this.shouldGenerateNewWelcome(userId, welcomeContent) && attempts < maxAttempts) {
       welcomeContent = this.generateWelcomeMessage(userProgress);
       attempts++;
     }
 
-    // Add welcome message from Sky
     const welcomeMessage: ConversationMessage = {
       id: `sky_${Date.now()}`,
       type: 'sky',
@@ -88,7 +85,6 @@ class AICharacterService {
       throw new Error('Conversation not found');
     }
 
-    // Add user message
     const userMessage: ConversationMessage = {
       id: `user_${Date.now()}`,
       type: 'user',
@@ -99,7 +95,6 @@ class AICharacterService {
 
     context.messages.push(userMessage);
 
-    // Generate Sky's response
     const skyResponse = await this.generateSkyResponse(message, context);
     const skyMessage: ConversationMessage = {
       id: `sky_${Date.now()}`,
@@ -111,9 +106,8 @@ class AICharacterService {
 
     context.messages.push(skyMessage);
 
-    // Keep only last 10 messages to manage memory
-    if (context.messages.length > 10) {
-      context.messages = context.messages.slice(-10);
+    if (context.messages.length > 20) {
+      context.messages = context.messages.slice(-20);
     }
 
     return skyMessage;
@@ -125,13 +119,14 @@ class AICharacterService {
   ): Promise<string> {
     try {
       const lowerMessage = userMessage.toLowerCase();
+      const personalityPrompt = this.getPersonalityPrompt();
 
-      if (lowerMessage.includes('make a') || lowerMessage.includes('create a') || lowerMessage.includes('build a') ||
-          lowerMessage.includes('calculator') || lowerMessage.includes('function') || lowerMessage.includes('code') ||
-          lowerMessage.includes('write') || lowerMessage.includes('implement') || lowerMessage.includes('develop')) {
+      const isCodingRequest = (msg: string) => ['make', 'create', 'build', 'calculator', 'function', 'code', 'write', 'implement', 'develop'].some(kw => msg.includes(kw));
+      const isDebuggingRequest = (msg: string) => ['error', 'bug', 'debug', 'not working', 'fix'].some(kw => msg.includes(kw));
+      const isConceptRequest = (msg: string) => ['what is', 'explain', 'how does', 'definition', 'concept'].some(kw => msg.includes(kw));
 
-        let enhancedPrompt = userMessage;
-
+      if (isCodingRequest(lowerMessage)) {
+        let enhancedPrompt = `As an AI Python coach named Sky, generate the following code for a student. Keep the explanation encouraging and clear.\n\nRequest: "${userMessage}"`;
         if (lowerMessage.includes('calculator')) {
           enhancedPrompt = `Create a complete Python calculator application with the following features:
           - Command-line interface that takes user input
@@ -144,22 +139,22 @@ class AICharacterService {
           The code should be well-commented, user-friendly, and handle edge cases gracefully.
           Please provide the complete working code and explain how it works step by step.`
         }
-
         return await groqService.generateCode(enhancedPrompt, context.lessonContext);
       }
 
-      if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('debug') ||
-          lowerMessage.includes('not working') || lowerMessage.includes('fix')) {
-        return await groqService.answerQuestion(userMessage, context.userProgress);
+      if (isDebuggingRequest(lowerMessage)) {
+        const debugPrompt = `${personalityPrompt}\n\nA user is facing a bug. Their message is: "${userMessage}".\n\nProvide a helpful, encouraging, and step-by-step guide to help them debug the issue. Reference their user progress if relevant: ${JSON.stringify(context.userProgress)}`;
+        return await groqService.answerQuestion(debugPrompt, context.userProgress);
       }
 
-      if (lowerMessage.includes('what is') || lowerMessage.includes('explain') || lowerMessage.includes('how does') ||
-          lowerMessage.includes('definition') || lowerMessage.includes('concept')) {
+      if (isConceptRequest(lowerMessage)) {
         const concept = userMessage.replace(/(what is|explain|how does)/gi, '').trim();
-        return await groqService.explainConcept(concept);
+        const explainPrompt = `${personalityPrompt}\n\nA user wants to understand a concept: "${concept}".\n\nExplain it clearly, as if you were a friendly and patient Python coach.`;
+        return await groqService.explainConcept(explainPrompt);
       }
 
-      return await groqService.answerQuestion(userMessage, context.userProgress);
+      const generalPrompt = `${personalityPrompt}\n\nThe user's message is: "${userMessage}".\n\nUser's progress: ${JSON.stringify(context.userProgress)}.\n\nFormulate a response in Sky's personality.`;
+      return await groqService.answerQuestion(generalPrompt, context.userProgress);
 
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -169,36 +164,29 @@ class AICharacterService {
 
   private getFallbackResponse(userMessage: string, context: ConversationContext): string {
     const lowerMessage = userMessage.toLowerCase();
+    const responses = {
+      stuck: [
+        "No worries at all! Every single great developer gets stuck. It's actually part of the process! What's the specific part that's causing trouble? Let's figure it out together. 🚀",
+        "I'm here for you! Getting stuck is just a sign that you're tackling something challenging, which is how you grow! Can you show me the code or tell me more about the error? 💪"
+      ],
+      motivation: [
+        `I hear you. It's completely normal to feel that way. Just remember how far you've come! You have a ${context.userProgress.currentStreak}-day streak and you've earned ${context.userProgress.totalXP} XP. That's not nothing! You've got this. 💙`,
+        "Don't give up! The most rewarding things are often the most challenging. Take a short break, grab some water, and come back. We can tackle this together. I believe in you! 🌈"
+      ],
+      celebration: [
+        "YES! That is amazing! 🎉 You're making incredible progress, and I'm so excited for you. Keep that momentum going! 🔥",
+        "Woohoo! 🎉 That's a huge accomplishment! You're building your skills one step at a time. What's next on your list?"
+      ],
+      default: [
+        "That's a great question! I'm here to help you on your Python adventure. 🐍✨",
+        "I'm Sky, your personal Python coach! I can help with code, explain concepts, or just cheer you on. What's on your mind? 🌟"
+      ]
+    };
 
-    if (lowerMessage.includes('stuck') || lowerMessage.includes('help') || lowerMessage.includes('confused')) {
-      return `Hey there! No worries - every great coder gets stuck sometimes! 🌟
-
-What specific part is giving you trouble? Remember, debugging is a superpower that makes you stronger! 💪
-
-I believe in you! Let's break this down step by step. 🚀`;
-    }
-
-    if (lowerMessage.includes('tired') || lowerMessage.includes('giving up') || lowerMessage.includes('quit')) {
-      return `I see you, and I want you to know something important: You're capable of amazing things! 🌈
-
-Remember why you started this journey? Every line of code you write is progress! 🎯
-
-Your ${context.userProgress.currentStreak}-day streak shows you've got what it takes. Let's tackle this together! 💙`;
-    }
-
-    if (lowerMessage.includes('completed') || lowerMessage.includes('finished') || lowerMessage.includes('done')) {
-      return `YES! That's what I'm talking about! 🎉🎊
-
-You're absolutely crushing it! Each lesson you complete is building your Python superpowers! 🦸‍♀️
-
-Keep that momentum going - you're on fire! 🔥✨`;
-    }
-
-    return `Hey there! I'm here to help you on your Python journey! 🐍✨
-
-Whether you're stuck on a concept, need motivation, or want to celebrate a win - I've got your back!
-
-What can I help you with today? Remember, every expert was once a beginner! 🌟`;
+    if (lowerMessage.includes('stuck') || lowerMessage.includes('help')) return responses.stuck[Math.floor(Math.random() * responses.stuck.length)];
+    if (lowerMessage.includes('tired') || lowerMessage.includes('quit')) return responses.motivation[Math.floor(Math.random() * responses.motivation.length)];
+    if (lowerMessage.includes('completed') || lowerMessage.includes('finished')) return responses.celebration[Math.floor(Math.random() * responses.celebration.length)];
+    return responses.default[Math.floor(Math.random() * responses.default.length)];
   }
 
   private generateWelcomeMessage(userProgress: any): string {
