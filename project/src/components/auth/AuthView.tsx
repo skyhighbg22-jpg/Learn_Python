@@ -205,15 +205,17 @@ export const AuthView = () => {
       <div className="w-full max-w-md">
         <BounceIn delay={100} className="bg-white rounded-2xl shadow-xl p-8 glass-enhanced">
           {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
+          <BounceIn delay={200} className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 transition-transform duration-300 hover:scale-110 hover:shadow-lg">
               <span className="text-white text-2xl font-bold">Py</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">PyLearn</h1>
-            <p className="text-gray-600 mt-2">
-              {mode === 'signup' ? 'Create your account' : mode === 'signin' ? 'Welcome back' : 'Reset your password'}
-            </p>
-          </div>
+            <MorphTransition>
+              <h1 className="text-2xl font-bold text-gray-900">PyLearn</h1>
+              <p className="text-gray-600 mt-2">
+                {mode === 'signup' ? 'Create your account' : mode === 'signin' ? 'Welcome back' : 'Reset your password'}
+              </p>
+            </MorphTransition>
+          </BounceIn>
 
           
           {/* Error/Success Messages */}
