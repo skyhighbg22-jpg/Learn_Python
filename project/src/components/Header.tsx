@@ -219,25 +219,31 @@ export const Header = () => {
       </div>
 
       {/* XP Progress Bar */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-slate-400 font-medium">Level Progress</span>
-          <span className="text-xs text-primary-400 font-medium">
-            {((profile?.total_xp || 0) % 100)}/100 XP to Level {(profile?.current_level || 1) + 1}
-          </span>
-        </div>
-        <div className="progress-bar h-3">
-          <div
-            className="progress-fill relative"
-            style={{ width: `${((profile?.total_xp || 0) % 100)}%` }}
-          >
-            {/* Animated progress indicator */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg animate-pulse"></div>
-            {/* Progress glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-warning-400 opacity-30 rounded-full blur-sm"></div>
+      <BounceIn delay={600}>
+        <div className="mt-4">
+          <SmoothTransition duration={500}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-slate-400 font-medium transition-colors duration-300">Level Progress</span>
+              <span className="text-xs text-primary-400 font-medium transition-all duration-300">
+                {((profile?.total_xp || 0) % 100)}/100 XP to Level {(profile?.current_level || 1) + 1}
+              </span>
+            </div>
+          </SmoothTransition>
+          <div className="progress-bar h-3 hover-lift">
+            <LiquidFill
+              progress={((profile?.total_xp || 0) % 100)}
+              className="h-3"
+            >
+              {/* Animated progress indicator */}
+              <SmoothTransition duration={300}>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg animate-pulse animate-glow"></div>
+              </SmoothTransition>
+              {/* Progress glow */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-warning-400 opacity-30 rounded-full blur-sm animate-glow-pulse"></div>
+            </LiquidFill>
           </div>
         </div>
-      </div>
+      </BounceIn>
 
       {/* Header Ad Banner */}
       <div className="mt-4">
