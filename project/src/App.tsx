@@ -15,6 +15,15 @@ import AdManager from './components/ads/AdManager';
 import { ResponsiveAd, AutoAd } from './components/ads/AutoAd';
 import { PaymentModal } from './components/ui/PaymentModal';
 import { AdFreeBanner } from './components/ui/AdFreeBanner';
+import {
+  SpringWrapper,
+  BounceIn,
+  SmoothTransition,
+  PageTransition,
+  MorphTransition,
+  RippleEffect,
+  LiquidFill
+} from './components/ui/Animations';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
