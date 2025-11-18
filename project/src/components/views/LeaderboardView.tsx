@@ -171,7 +171,7 @@ export const LeaderboardView = () => {
                 </div>
               </div>
             );
-                    );
+
           })}
         </div>
       </div>
