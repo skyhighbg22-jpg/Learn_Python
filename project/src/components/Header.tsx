@@ -78,26 +78,34 @@ export const Header = () => {
         {/* Enhanced Stats Section */}
         <div className="flex items-center gap-4">
           {/* Enhanced Streak Card */}
-          <div className="stat-card group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
-            <div className="relative flex items-center gap-3">
-              <div className="relative">
-                <Flame className="text-orange-500 animate-pulse" size={24} />
-                {animatedStats.streak > 0 && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-ping"></div>
-                )}
+          <MagneticHover strength={0.15}>
+            <BounceIn delay={100}>
+              <div className="stat-card group relative overflow-hidden hover-lift hover-glow">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-3">
+                  <div className="relative">
+                    <ElasticScale trigger={animatedStats.streak > 0}>
+                      <Flame className="text-orange-500 animate-pulse" size={24} />
+                    </ElasticScale>
+                    {animatedStats.streak > 0 && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-ping"></div>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <SmoothTransition duration={500}>
+                      <span
+                        className="text-white font-bold text-lg tabular-nums transition-all duration-300"
+                        key={`streak-${animatedStats.streak}`}
+                      >
+                        {animatedStats.streak}
+                      </span>
+                    </SmoothTransition>
+                    <span className="text-slate-400 text-xs font-medium">day streak</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span
-                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
-                  key={`streak-${animatedStats.streak}`}
-                >
-                  {animatedStats.streak}
-                </span>
-                <span className="text-slate-400 text-xs font-medium">day streak</span>
-              </div>
-            </div>
-          </div>
+            </BounceIn>
+          </MagneticHover>
 
           {/* Enhanced Hearts Card */}
           <div className="stat-card group relative overflow-hidden">
