@@ -260,56 +260,66 @@ export const AuthView = () => {
 
           {/* Form */}
           {emailStatus !== 'sent' && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
-                <>
+            <BounceIn delay={400}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {mode === 'signup' && (
+                  <>
+                    <SmoothTransition delay={100}>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-enhanced transition-all duration-300 focus:scale-[1.02]"
+                          placeholder="Enter your full name"
+                          required
+                        />
+                      </div>
+                    </SmoothTransition>
+
+                    <SmoothTransition delay={200}>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Username
+                        </label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-enhanced transition-all duration-300 focus:scale-[1.02]"
+                          placeholder="Choose a username"
+                          minLength={3}
+                          required
+                        />
+                      </div>
+                    </SmoothTransition>
+                  </>
+                )}
+
+                <SmoothTransition delay={mode === 'signup' ? 300 : 100}>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
+                      Email Address
                     </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your full name"
-                      required
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 transition-colors duration-300 peer-focus:text-blue-500" />
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-enhanced transition-all duration-300 focus:scale-[1.02] peer"
+                        placeholder="Enter your email"
+                        required
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Choose a username"
-                      minLength={3}
-                      required
-                    />
-                  </div>
-                </>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
+                </SmoothTransition>
 
               {mode !== 'forgot-password' && (
                 <div>
