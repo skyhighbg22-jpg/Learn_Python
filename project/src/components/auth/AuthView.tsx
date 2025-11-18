@@ -239,20 +239,22 @@ export const AuthView = () => {
           {error && error.includes('verify your email') && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800 mb-3">Didn't receive the verification email?</p>
-              <button
-                onClick={handleResendVerification}
-                disabled={emailStatus === 'sending'}
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {emailStatus === 'sending' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  'Resend Verification Email'
-                )}
-              </button>
+              <RippleEffect>
+                <button
+                  onClick={handleResendVerification}
+                  disabled={emailStatus === 'sending'}
+                  className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 btn-enhanced focus-enhanced"
+                >
+                  {emailStatus === 'sending' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Resend Verification Email'
+                  )}
+                </button>
+              </RippleEffect>
             </div>
           )}
 
