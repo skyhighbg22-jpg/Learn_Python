@@ -6,8 +6,6 @@ import {
   Eye,
   EyeOff,
   User,
-  Chrome,
-  Apple,
   AlertCircle,
   CheckCircle,
   ArrowLeft,
@@ -22,7 +20,7 @@ type EmailStatus = 'idle' | 'sending' | 'sent' | 'error';
 export const AuthView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signUp, signIn, signInWithGoogle, signInWithApple, resetPassword, resendVerificationEmail } = useAuth();
+  const { signUp, signIn, resetPassword, resendVerificationEmail } = useAuth();
   const { addNotification } = useNotifications();
 
   const [mode, setMode] = useState<AuthMode>('signin');
@@ -120,28 +118,7 @@ export const AuthView = () => {
     }
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError('');
-
-    try {
-      if (provider === 'google') {
-        await signInWithGoogle();
-      } else if (provider === 'apple') {
-        await signInWithApple();
-      }
-
-      addNotification({
-        type: 'auth',
-        title: 'OAuth Sign-In',
-        message: `Signing in with ${provider}...`,
-      });
-    } catch (error: any) {
-      setError(error.message || `Failed to sign in with ${provider}. Please try again.`);
-      setLoading(false);
-    }
-  };
-
+  
   const handleResendVerification = async () => {
     setEmailStatus('sending');
     setError('');
@@ -195,42 +172,7 @@ export const AuthView = () => {
             </p>
           </div>
 
-          {/* OAuth Buttons */}
-          {mode !== 'forgot-password' && (
-            <div className="space-y-3 mb-6">
-              <button
-                onClick={() => handleOAuthSignIn('google')}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                <Chrome className="w-5 h-5" />
-                <span>Continue with Google</span>
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              </button>
-
-              <button
-                onClick={() => handleOAuthSignIn('apple')}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                <Apple className="w-5 h-5" />
-                <span>Continue with Apple</span>
-              </button>
-            </div>
-          )}
-
-          {/* Divider */}
-          {mode !== 'forgot-password' && (
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
-              </div>
-            </div>
-          )}
-
+          
           {/* Error/Success Messages */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -339,10 +281,29 @@ export const AuthView = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                      title={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
+                    {showPassword ? (
+                      <>
+                        <EyeOff className="w-3 h-3" />
+                        <span>Password is visible</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3 h-3" />
+                        <span>Click the eye icon to show password</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

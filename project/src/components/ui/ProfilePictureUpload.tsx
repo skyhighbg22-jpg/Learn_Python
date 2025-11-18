@@ -3,8 +3,8 @@ import { Camera, Upload, X, User, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ProfilePictureUploadProps {
-  currentAvatar?: string;
-  onAvatarChange: (avatarUrl: string) => void;
+  currentAvatar?: string | null;
+  onAvatarChange: (avatarUrl: string | null) => void;
   userId: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -13,7 +13,6 @@ interface ProfilePictureUploadProps {
 export const ProfilePictureUpload = ({
   currentAvatar,
   onAvatarChange,
-  onAvatarUrlChange,
   userId,
   className = '',
   size = 'md'
@@ -37,7 +36,7 @@ export const ProfilePictureUpload = ({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      onAvatarChange(''); // Clear avatar if invalid
+      onAvatarChange(null); // Clear avatar if invalid
       return;
     }
 

@@ -2,7 +2,7 @@
 // This service uses Groq's free API for real-time AI responses and code generation
 
 // Import API key from environment variables
-const GROQ_API_KEY = 'gsk_pJ8nLqR4T9xK7mHd5W3mWGdyB3FZyYcL2hP4q1QXrD8nZ'; // Valid API key from Groq console
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 interface GroqMessage {
@@ -52,10 +52,10 @@ Your mission: Make Python learning fun, accessible, and rewarding! Always end wi
   }
 
   private async makeApiCall(messages: GroqMessage[]): Promise<string> {
-    // Check if API key is available
-    if (!GROQ_API_KEY) {
-      console.error('Groq API key not found in environment variables');
-      return "I'm having trouble with my AI connection right now. Please make sure the API key is configured! 🌟";
+    // Check if API key is available and valid
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'get_your_key_from_groq_console') {
+      console.error('Groq API key not configured or placeholder not replaced');
+      return "I'm having trouble with my AI connection right now. Please configure your API key in the .env file! 🌟";
     }
 
     const maxRetries = 3;
@@ -245,6 +245,37 @@ User Context:
     ];
 
     return await this.makeApiCall(messages);
+  }
+
+  // Health check method to test API connectivity
+  async checkApiHealth(): Promise<{ healthy: boolean; error?: string }> {
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'get_your_key_from_groq_console') {
+      return { healthy: false, error: 'API key not configured' };
+    }
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama3-70b-8192',
+          messages: [{ role: 'user', content: 'Hi' }],
+          temperature: 0.7,
+          max_tokens: 10,
+        }),
+      });
+
+      if (!response.ok) {
+        return { healthy: false, error: `API error: ${response.status}` };
+      }
+
+      return { healthy: true };
+    } catch (error) {
+      return { healthy: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 }
 

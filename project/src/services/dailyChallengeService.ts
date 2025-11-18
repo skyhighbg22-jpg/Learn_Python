@@ -38,15 +38,28 @@ class DailyChallengeService {
   private readonly STREAK_BONUS = 100; // Bonus for 7-day streak
 
   async getTodayChallenges(): Promise<DailyChallenge[]> {
-    // In production, this would fetch from database
-    // For now, return sample challenges
-    const today = new Date();
-    const dayOfWeek = today.getDay();
+    try {
+      // In production, this would fetch from database
+      // For now, return sample challenges
+      const today = new Date();
+      const dayOfWeek = today.getDay();
 
-    // Generate challenges based on day of week for variety
-    const challenges = this.generateChallengesForDay(dayOfWeek);
+      // Add cache busting to prevent stale data
+      const cacheBuster = Date.now();
+      console.log(`Loading challenges for day ${dayOfWeek} (cache: ${cacheBuster})`);
 
-    return challenges;
+      // Generate challenges based on day of week for variety
+      const challenges = this.generateChallengesForDay(dayOfWeek);
+
+      if (!challenges || challenges.length === 0) {
+        throw new Error('No challenges available for today');
+      }
+
+      return challenges;
+    } catch (error) {
+      console.error('Error loading today\'s challenges:', error);
+      throw new Error(`Failed to load challenges: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private generateChallengesForDay(dayOfWeek: number): DailyChallenge[] {
@@ -301,6 +314,75 @@ class DailyChallengeService {
     const hintScore = Math.max(0, 100 - (hintsUsed / maxHints) * 30);
 
     return Math.round((timeScore + hintScore) / 2);
+  }
+
+  // API Health check method to test service availability
+  async checkApiHealth(): Promise<{ healthy: boolean; error?: string }> {
+    try {
+      // Test basic service functionality
+      const testChallenges = await this.getTodayChallenges();
+      if (!testChallenges || testChallenges.length === 0) {
+        return { healthy: false, error: 'No challenges available' };
+      }
+      return { healthy: true };
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown service error'
+      };
+    }
+  }
+
+  // Check for network connectivity
+  private isOnline(): boolean {
+    return navigator.onLine;
+  }
+
+  // Get offline-aware challenge data with caching
+  async getTodayChallengesWithFallback(): Promise<DailyChallenge[]> {
+    try {
+      if (!this.isOnline()) {
+        console.log('Device offline, using cached challenges');
+        return this.getCachedChallenges();
+      }
+
+      const challenges = await this.getTodayChallenges();
+      this.cacheChallenges(challenges);
+      return challenges;
+    } catch (error) {
+      console.warn('Failed to load fresh challenges, attempting fallback:', error);
+      return this.getCachedChallenges();
+    }
+  }
+
+  // Cache management for offline scenarios
+  private cacheChallenges(challenges: DailyChallenge[]): void {
+    try {
+      localStorage.setItem('daily_challenges_cache', JSON.stringify({
+        challenges,
+        cachedAt: Date.now()
+      }));
+    } catch (error) {
+      console.warn('Failed to cache challenges:', error);
+    }
+  }
+
+  private getCachedChallenges(): DailyChallenge[] {
+    try {
+      const cached = localStorage.getItem('daily_challenges_cache');
+      if (cached) {
+        const { challenges, cachedAt } = JSON.parse(cached);
+        // Use cached data if less than 24 hours old
+        if (Date.now() - cachedAt < 24 * 60 * 60 * 1000) {
+          return challenges;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read cached challenges:', error);
+    }
+
+    // Return basic fallback challenges if no cache available
+    return this.generateChallengesForDay(new Date().getDay());
   }
 }
 

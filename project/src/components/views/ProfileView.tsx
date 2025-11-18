@@ -15,6 +15,8 @@ export const ProfileView = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [profileLoadRetry, setProfileLoadRetry] = useState(0);
   const [skills, setSkills] = useState<SkillData[]>([]);
   const [learningPaths, setLearningPaths] = useState<LearningPathData[]>([]);
   const [profileStats, setProfileStats] = useState<any>(null);
@@ -38,8 +40,64 @@ export const ProfileView = () => {
     );
   }
 
-  // Handle missing profile with error state and retry
+  // Enhanced error recovery with offline support and cache
+  const handleProfileRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      await refreshProfile();
+      // Also clear any cached data to ensure fresh load
+      localStorage.removeItem('profile_cache');
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+      setError('Unable to load profile. Check your connection and try again.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Check for cached profile data for offline scenarios
+  const getCachedProfile = () => {
+    try {
+      const cached = localStorage.getItem('profile_cache');
+      if (cached) {
+        const { profile: cachedProfile, timestamp } = JSON.parse(cached);
+        // Use cached data if less than 1 hour old
+        if (Date.now() - timestamp < 60 * 60 * 1000) {
+          return cachedProfile;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read cached profile:', error);
+    }
+    return null;
+  };
+
+  // Cache profile data for offline viewing
+  const cacheProfileData = (profileData: any) => {
+    try {
+      localStorage.setItem('profile_cache', JSON.stringify({
+        profile: profileData,
+        timestamp: Date.now()
+      }));
+    } catch (error) {
+      console.warn('Failed to cache profile data:', error);
+    }
+  };
+
+  // Handle missing profile with enhanced error recovery
   if (!profile) {
+    const cachedProfile = getCachedProfile();
+    if (cachedProfile && profileLoadRetry < 2) {
+      // Show cached data while attempting to refresh
+      cacheProfileData(cachedProfile);
+      // Trigger a refresh attempt
+      setTimeout(() => {
+        handleProfileRefresh();
+        setProfileLoadRetry(prev => prev + 1);
+      }, 1000);
+    }
+
     return (
       <div className="max-w-4xl mx-auto p-8">
         <div className="flex flex-col items-center justify-center h-64 bg-slate-800 rounded-2xl p-8">
@@ -52,41 +110,55 @@ export const ProfileView = () => {
           <p className="text-slate-400 mb-6 text-center max-w-md">
             We couldn't load your profile data. This might be due to a connection issue or temporary server problem.
           </p>
-          <button
-            onClick={async () => {
-              setRefreshing(true);
-              try {
-                await refreshProfile();
-              } catch (error) {
-                console.error('Failed to refresh profile:', error);
-              } finally {
-                setRefreshing(false);
-              }
-            }}
-            disabled={refreshing}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            {refreshing ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Refreshing...
-              </>
-            ) : (
-              'Try Again'
-            )}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleProfileRefresh}
+              disabled={refreshing}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              {refreshing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Refreshing...
+                </>
+              ) : (
+                'Try Again'
+              )}
+            </button>
+            <button
+              onClick={() => {
+                // Force complete reset
+                localStorage.removeItem('profile_cache');
+                setProfileLoadRetry(0);
+                window.location.reload();
+              }}
+              className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+            >
+              Force Refresh
+            </button>
+          </div>
+          {error && (
+            <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // Load profile data
+  // Load profile data with automatic retry and caching
   useEffect(() => {
-    const loadProfileData = async () => {
+    const loadProfileData = async (retryCount = 0) => {
       if (!profile?.id) return;
 
       try {
         setLoading(true);
+        setError(null);
+
+        // Cache the current profile data
+        cacheProfileData(profile);
+
         const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData, rewards, celebrations] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
           AchievementService.getAchievementStats(profile.id),
@@ -101,29 +173,52 @@ export const ProfileView = () => {
           Promise.resolve([])  // TODO: AchievementService.getUnviewedCelebrations(profile.id)
         ]);
 
-        setAchievementProgress(progress);
-        setAchievementStats(stats);
-        setSkills(skillData);
-        setLearningPaths(pathData);
-        setProfileStats(analytics);
+        setAchievementProgress(progress || []);
+        setAchievementStats(stats || {});
+        setSkills(skillData || []);
+        setLearningPaths(pathData || []);
+        setProfileStats(analytics || {});
         setUserRanking(userRanking);
-        setLeagueUsers(leaderboardData);
-        setSpecialRewards(rewards);
-        setUnviewedCelebrations(celebrations);
+        setLeagueUsers(leaderboardData || []);
+        setSpecialRewards(rewards || []);
+        setUnviewedCelebrations(celebrations || []);
 
         // Show first unviewed celebration
-        if (celebrations.length > 0) {
+        if (celebrations && celebrations.length > 0) {
           setCelebrationAchievement(celebrations[0]);
           setShowCelebration(true);
         }
-      } catch (error) {
-        console.error('Error loading profile data:', error);
+
+        // Reset retry count on success
+        setProfileLoadRetry(0);
+      } catch (error: any) {
+        console.error(`Error loading profile data (attempt ${retryCount + 1}):`, error);
+
+        // Automatic retry with exponential backoff (max 3 attempts)
+        if (retryCount < 3) {
+          const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          setTimeout(() => loadProfileData(retryCount + 1), delay);
+        } else {
+          setError('Failed to load profile data. Some features may be unavailable.');
+          // Set default values to prevent complete failure
+          setAchievementProgress([]);
+          setAchievementStats({});
+          setSkills([]);
+          setLearningPaths([]);
+          setProfileStats(null);
+          setUserRanking(null);
+          setLeagueUsers([]);
+          setSpecialRewards([]);
+          setUnviewedCelebrations([]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfileData();
+    if (profile) {
+      loadProfileData();
+    }
   }, [profile?.id]);
 
   const stats = [

@@ -8,8 +8,6 @@ type AuthContextType = {
   loading: boolean;
   signUp: (email: string, password: string, username: string, fullName?: string) => Promise<{ user: User; needsVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<{ user: User; needsVerification: boolean }>;
-  signInWithGoogle: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
-  signInWithApple: () => Promise<{ user: User; needsVerification: boolean; isNewUser: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfileAvatar: (avatarUrl: string) => Promise<void>;
@@ -220,112 +218,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   };
 
-  const signInWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        }
-      }
-    });
-
-    if (error) throw error;
-
-    // Handle the OAuth callback
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-    if (sessionError) throw sessionError;
-    if (!session?.user) throw new Error('No user returned after OAuth');
-
-    // Check if user exists in profiles table
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
-    const isNewUser = !existingProfile;
-
-    if (isNewUser) {
-      // Create profile for new OAuth user using ensureProfileExists
-      const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
-      const username = session.user.user_metadata?.username ||
-                     fullName?.toLowerCase().replace(/\s+/g, '_') ||
-                     `user_${session.user.id.slice(0, 8)}`;
-
-      const oauthMetadata = {
-        full_name: fullName,
-        username,
-        avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-        email_confirmed: true,
-        signup_method: 'google',
-      };
-
-      await ensureProfileExists(session.user.id, oauthMetadata);
-      await sendWelcomeEmail(session.user.email!, fullName || username);
-    }
-
-    return {
-      user: session.user,
-      needsVerification: false, // OAuth users don't need email verification
-      isNewUser
-    };
-  };
-
-  const signInWithApple = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        scopes: 'name email',
-      }
-    });
-
-    if (error) throw error;
-
-    // Handle the OAuth callback
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-    if (sessionError) throw sessionError;
-    if (!session?.user) throw new Error('No user returned after OAuth');
-
-    // Check if user exists in profiles table
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
-    const isNewUser = !existingProfile;
-
-    if (isNewUser) {
-      // Create profile for new OAuth user using ensureProfileExists
-      const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
-      const username = session.user.user_metadata?.username ||
-                     fullName?.toLowerCase().replace(/\s+/g, '_') ||
-                     `user_${session.user.id.slice(0, 8)}`;
-
-      const oauthMetadata = {
-        full_name: fullName,
-        username,
-        email_confirmed: true,
-        signup_method: 'apple',
-      };
-
-      await ensureProfileExists(session.user.id, oauthMetadata);
-      await sendWelcomeEmail(session.user.email!, fullName || username);
-    }
-
-    return {
-      user: session.user,
-      needsVerification: false, // OAuth users don't need email verification
-      isNewUser
-    };
-  };
-
+  
   const resendVerificationEmail = async () => {
     if (!user?.email) throw new Error('No user email found');
 
@@ -411,8 +304,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loading,
         signUp,
         signIn,
-        signInWithGoogle,
-        signInWithApple,
         signOut,
         refreshProfile,
         updateProfileAvatar,

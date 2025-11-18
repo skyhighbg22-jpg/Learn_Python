@@ -1,6 +1,7 @@
 import { Flame, Heart, Zap, Trophy, Crown, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfilePictureUpload } from './ui/ProfilePictureUpload';
+import { AdManager } from './ads/AdManager';
 import { useEffect, useState } from 'react';
 
 export const Header = () => {
@@ -127,7 +128,9 @@ export const Header = () => {
         {/* Enhanced Profile Section */}
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-white font-semibold text-lg">{profile?.display_name}</p>
+            <p className="text-white font-semibold text-lg">
+              {profile?.display_name || profile?.username || 'New Python Coder'}
+            </p>
             <div className="flex items-center gap-2 justify-end">
               {getLeagueIcon(profile?.league || 'Bronze')}
               <span className={`text-sm font-medium capitalize ${getLeagueColor(profile?.league || 'Bronze')}`}>
@@ -175,6 +178,11 @@ export const Header = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-warning-400 opacity-30 rounded-full blur-sm"></div>
           </div>
         </div>
+      </div>
+
+      {/* Header Ad Banner */}
+      <div className="mt-4">
+        <AdManager adType="banner" className="w-full" />
       </div>
     </div>
   );

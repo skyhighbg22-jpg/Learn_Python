@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AdProvider } from './contexts/AdContext';
 import { AuthForm } from './components/AuthForm';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -10,12 +11,17 @@ import { ChallengesView } from './components/views/ChallengesView';
 import { PracticeView } from './components/views/PracticeView';
 import { FriendsView } from './components/views/FriendsView';
 import { AICharacter } from './components/ui/AICharacter';
+import { AdManager } from './components/ads/AdManager';
+import { ResponsiveAd, AutoAd } from './components/ads/AutoAd';
+import { PaymentModal } from './components/ui/PaymentModal';
+import { AdFreeBanner } from './components/ui/AdFreeBanner';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState('learn');
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [lessonContext, setLessonContext] = useState<string>();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Handle keyboard shortcut for AI chat (Ctrl/Cmd + K)
   useEffect(() => {
@@ -66,8 +72,66 @@ const MainApp = () => {
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">{renderView()}</main>
+
+        {/* Ad-Free Banner */}
+        <div className="px-6 py-4">
+          <AdFreeBanner
+            onUpgrade={() => setShowPaymentModal(true)}
+            className="max-w-4xl mx-auto"
+          />
+        </div>
+
+        <main className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="max-w-4xl mx-auto">
+            {renderView()}
+          </div>
+        </main>
       </div>
+
+      {/* Sidebar Ad */}
+      <div className="w-80 bg-slate-800 border-l border-slate-700 p-4 hidden lg:block">
+        <div className="sticky top-4 space-y-4">
+          <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Sponsored</h3>
+          <AdManager adType="sidebar" className="w-full" />
+
+          {/* Test Auto Ad */}
+          <div className="mt-4">
+            <AutoAd height="250px" width="300px" className="w-full" />
+          </div>
+
+          {/* Additional ads for longer pages */}
+          {(currentView === 'learn' || currentView === 'practice') && (
+            <>
+              <div className="mt-8">
+                <ResponsiveAd className="w-full" />
+              </div>
+              <div className="mt-4">
+                <AutoAd height="250px" width="300px" className="w-full" />
+              </div>
+            </>
+          )}
+
+          {/* Compact Upgrade Banner */}
+          <div className="mt-8">
+            <AdFreeBanner
+              onUpgrade={() => setShowPaymentModal(true)}
+              compact={true}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => {
+          setShowPaymentModal(false);
+          // Force a page reload or state refresh to update ad status
+          window.location.reload();
+        }}
+      />
+
       <AICharacter
         isOpen={isAIChatOpen}
         onToggle={() => setIsAIChatOpen(!isAIChatOpen)}
@@ -80,7 +144,9 @@ const MainApp = () => {
 function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <AdProvider>
+        <MainApp />
+      </AdProvider>
     </AuthProvider>
   );
 }
