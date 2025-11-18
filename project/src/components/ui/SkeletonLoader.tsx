@@ -66,13 +66,17 @@ export const SkeletonStats = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="space-y-3">
-            <Skeleton variant="circular" width="w-8 h-8" />
-            <Skeleton width="w-3/4" className="h-6" />
-            <Skeleton width="w-1/2" className="h-3" />
+        <BounceIn key={index} delay={index * 100}>
+          <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover-lift transition-all duration-300">
+            <SmoothTransition delay={200}>
+              <div className="space-y-3">
+                <Skeleton variant="circular" width="w-8 h-8" />
+                <Skeleton width="w-3/4" className="h-6" />
+                <Skeleton width="w-1/2" className="h-3" />
+              </div>
+            </SmoothTransition>
           </div>
-        </div>
+        </BounceIn>
       ))}
     </div>
   );
