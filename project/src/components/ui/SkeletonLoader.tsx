@@ -85,16 +85,24 @@ export const SkeletonStats = () => {
 // Skeleton for table/list items
 export const SkeletonListItem = () => {
   return (
-    <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-lg border border-slate-700">
-      <Skeleton variant="circular" className="flex-shrink-0" />
-      <div className="flex-1 space-y-2">
-        <Skeleton width="w-2/3" className="h-4" />
-        <Skeleton width="w-1/2" className="h-3" />
+    <BounceIn delay={100}>
+      <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-lg border border-slate-700 hover-lift transition-all duration-300">
+        <SmoothTransition delay={150}>
+          <Skeleton variant="circular" className="flex-shrink-0" />
+        </SmoothTransition>
+        <SmoothTransition delay={200}>
+          <div className="flex-1 space-y-2">
+            <Skeleton width="w-2/3" className="h-4" />
+            <Skeleton width="w-1/2" className="h-3" />
+          </div>
+        </SmoothTransition>
+        <SmoothTransition delay={250}>
+          <div className="text-right space-y-2">
+            <Skeleton width="w-20" className="h-4" />
+            <Skeleton width="w-16" className="h-3" />
+          </div>
+        </SmoothTransition>
       </div>
-      <div className="text-right space-y-2">
-        <Skeleton width="w-20" className="h-4" />
-        <Skeleton width="w-16" className="h-3" />
-      </div>
-    </div>
+    </BounceIn>
   );
 };
