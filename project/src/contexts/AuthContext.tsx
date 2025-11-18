@@ -174,7 +174,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Create profile with proper display_name
     const { error: profileError } = await supabase.from('profiles').insert({
       id: data.user.id,
-      username,
+      username: username, // Ensure username is explicitly passed
       full_name: fullName || username,
       display_name: fullName || username,
       avatar_character: 'sky',
