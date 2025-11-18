@@ -40,20 +40,24 @@ export const Skeleton = ({
 // Skeleton Card for lesson cards
 export const SkeletonCard = () => {
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-      <div className="flex items-start gap-4 mb-4">
-        <Skeleton variant="circular" className="flex-shrink-0" />
-        <div className="flex-1 space-y-2">
-          <Skeleton width="w-3/4" className="h-6" />
-          <Skeleton width="w-1/2" className="h-4" />
+    <BounceIn delay={100}>
+      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover-lift transition-all duration-300">
+        <SmoothTransition delay={200}>
+          <div className="flex items-start gap-4 mb-4">
+            <Skeleton variant="circular" className="flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton width="w-3/4" className="h-6" />
+              <Skeleton width="w-1/2" className="h-4" />
+            </div>
+          </div>
+        </SmoothTransition>
+        <div className="space-y-2">
+          <Skeleton width="w-full" className="h-4" />
+          <Skeleton width="w-5/6" className="h-4" />
+          <Skeleton width="w-4/5" className="h-4" />
         </div>
       </div>
-      <div className="space-y-2">
-        <Skeleton width="w-full" className="h-4" />
-        <Skeleton width="w-5/6" className="h-4" />
-        <Skeleton width="w-4/5" className="h-4" />
-      </div>
-    </div>
+    </BounceIn>
   );
 };
 
