@@ -673,6 +673,36 @@ class AchievementService {
     }
   }
 
+  // Get special rewards for a user
+  async getSpecialRewards(userId: string): Promise<Reward[]> {
+    try {
+      const { data: userAchievements } = await supabase
+        .from('user_achievements')
+        .select('achievement_id')
+        .eq('user_id', userId);
+
+      if (!userAchievements) return [];
+
+      const achievementIds = userAchievements.map(ua => ua.achievement_id);
+
+      const { data: achievements } = await supabase
+        .from('achievements')
+        .select('special_rewards')
+        .in('id', achievementIds);
+
+      if (!achievements) return [];
+
+      const allRewards = achievements
+        .flatMap(a => a.special_rewards as Reward[])
+        .filter(reward => reward !== null);
+
+      return allRewards;
+    } catch (error) {
+      console.error('Error fetching special rewards:', error);
+      return [];
+    }
+  }
+
   // Get leaderboard points for achievement rarity
   getLeaderboardPoints(rarity: string): number {
     switch (rarity) {
