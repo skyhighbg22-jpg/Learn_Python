@@ -338,21 +338,26 @@ export const AuthView = () => {
                         minLength={6}
                         required
                       />
-                      <ElasticScale trigger={showPassword}>
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200 micro-bounce"
-                          title={showPassword ? "Hide password" : "Show password"}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                          ) : (
-                            <Eye className="w-5 h-5" />
-                          )}
-                        </button>
-                      </ElasticScale>
+                      <RippleEffect>
+                        <ElasticScale trigger={showPassword}>
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300 micro-bounce btn-enhanced focus-enhanced group"
+                            title={showPassword ? "Hide password" : "Show password"}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            <div className="relative">
+                              {showPassword ? (
+                                <EyeOff className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+                              ) : (
+                                <Eye className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+                              )}
+                              <div className="absolute -inset-1 bg-blue-500 opacity-0 group-hover:opacity-10 rounded-full transition-opacity duration-300"></div>
+                            </div>
+                          </button>
+                        </ElasticScale>
+                      </RippleEffect>
                     </div>
                     <SmoothTransition delay={mode === 'signup' ? 500 : 300}>
                       <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
