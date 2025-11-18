@@ -55,9 +55,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const newProfile = {
         id: userId,
-        username,
+        username, // Use the prioritized username
         full_name: fullName || username,
-        display_name: fullName || username,
+        display_name: fullName || username, // Ensure display_name is set
         avatar_character: 'sky',
         avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture,
         current_streak: 0,
