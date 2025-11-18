@@ -27,6 +27,11 @@ export const Header = () => {
     }
   }, [profile]);
 
+  // Add debugging information during development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Header render - profile:', profile, 'user:', user, 'loading:', loading);
+  }
+
   const getLeagueIcon = (league: string) => {
     switch (league?.toLowerCase()) {
       case 'diamond':
