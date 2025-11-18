@@ -168,31 +168,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      // Map specific errors to user-friendly messages
+      if (error.message.includes('User already registered')) {
+        throw new Error('An account with this email already exists. Try signing in instead.');
+      }
+      if (error.message.includes('Password should be at least')) {
+        throw new Error('Password must be at least 6 characters long.');
+      }
+      throw error; // Re-throw other errors as-is
+    }
+
     if (!data.user) throw new Error('No user returned');
 
-    // Create profile with proper display_name
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      username: username, // Ensure username is explicitly passed
+    // Ensure profile exists with proper metadata
+    await ensureProfileExists(data.user.id, {
+      username,
       full_name: fullName || username,
       display_name: fullName || username,
-      avatar_character: 'sky',
-      avatar_url: null,
-      email_confirmed: false,
-      signup_method: 'email',
-      current_streak: 0,
-      longest_streak: 0,
-      total_xp: 0,
-      current_level: 1,
-      hearts: 5,
-      last_heart_reset: new Date().toISOString(),
-      league: 'bronze',
-      learning_path: null,
-      daily_goal_minutes: 30,
     });
-
-    if (profileError) throw profileError;
 
     // Send welcome email (handled by Supabase email templates)
     await sendWelcomeEmail(email, fullName || username);
