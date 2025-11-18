@@ -67,6 +67,33 @@ export const AuthView = () => {
     setError('');
   };
 
+  // Add this helper function above handleSubmit
+  const mapAuthError = (error: any) => {
+    const message = error.message || '';
+
+    if (message.includes('User already registered')) {
+      return 'An account with this email already exists. Try signing in instead.';
+    }
+    if (message.includes('Invalid login credentials')) {
+      return 'Incorrect email or password. Please check your credentials and try again.';
+    }
+    if (message.includes('Email not confirmed')) {
+      return 'Please verify your email address before signing in. Check your inbox for the verification link.';
+    }
+    if (message.includes('Password should be at least')) {
+      return 'Password must be at least 6 characters long.';
+    }
+    if (message.includes('rate limit')) {
+      return 'Too many attempts. Please wait a few moments before trying again.';
+    }
+    if (message.includes('Network request failed')) {
+      return 'Network connection issue. Please check your internet connection and try again.';
+    }
+
+    // Return original message for unhandled errors
+    return message || 'An unexpected error occurred. Please try again.';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -112,7 +139,15 @@ export const AuthView = () => {
         setSuccess('Password reset instructions have been sent to your email.');
       }
     } catch (error: any) {
-      setError(error.message || 'An error occurred. Please try again.');
+      const userFriendlyMessage = mapAuthError(error);
+      setError(userFriendlyMessage);
+
+      // Also add notification for better visibility
+      addNotification({
+        type: 'error',
+        title: 'Authentication Error',
+        message: userFriendlyMessage,
+      });
     } finally {
       setLoading(false);
     }
