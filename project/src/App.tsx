@@ -103,18 +103,26 @@ const MainApp = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-900">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+    <SpringWrapper className="flex h-screen bg-slate-900">
+      <SmoothTransition duration={400}>
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+      </SmoothTransition>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <BounceIn delay={200}>
+          <Header />
+        </BounceIn>
 
         {/* Ad-Free Banner */}
-        <div className="px-6 py-4">
-          <AdFreeBanner
-            onUpgrade={() => setShowPaymentModal(true)}
-            className="max-w-4xl mx-auto"
-          />
-        </div>
+        <BounceIn delay={300}>
+          <div className="px-6 py-4">
+            <MorphTransition>
+              <AdFreeBanner
+                onUpgrade={() => setShowPaymentModal(true)}
+                className="max-w-4xl mx-auto"
+              />
+            </MorphTransition>
+          </div>
+        </BounceIn>
 
         <main className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="max-w-4xl mx-auto">
