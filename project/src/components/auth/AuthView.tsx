@@ -321,70 +321,80 @@ export const AuthView = () => {
                   </div>
                 </SmoothTransition>
 
-              {mode !== 'forgot-password' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your password"
-                      minLength={6}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
-                      title={showPassword ? "Hide password" : "Show password"}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
+                <SmoothTransition delay={mode === 'signup' ? 400 : 200}>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 transition-colors duration-300 peer-focus:text-blue-500" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 pl-12 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-enhanced transition-all duration-300 focus:scale-[1.02] peer"
+                        placeholder="Enter your password"
+                        minLength={6}
+                        required
+                      />
+                      <ElasticScale trigger={showPassword}>
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200 micro-bounce"
+                          title={showPassword ? "Hide password" : "Show password"}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </ElasticScale>
+                    </div>
+                    <SmoothTransition delay={mode === 'signup' ? 500 : 300}>
+                      <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
+                        {showPassword ? (
+                          <>
+                            <EyeOff className="w-3 h-3" />
+                            <span>Password is visible</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" />
+                            <span>Click the eye icon to show password</span>
+                          </>
+                        )}
+                      </div>
+                    </SmoothTransition>
                   </div>
-                  <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
-                    {showPassword ? (
+                </SmoothTransition>
+              )}
+
+              <SmoothTransition delay={mode === 'signup' ? 600 : 300}>
+                <RippleEffect>
+                  <button
+                    type="submit"
+                    disabled={loading || !isValidForm()}
+                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-enhanced focus-enhanced hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    {loading ? (
                       <>
-                        <EyeOff className="w-3 h-3" />
-                        <span>Password is visible</span>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Processing...
                       </>
                     ) : (
                       <>
-                        <Eye className="w-3 h-3" />
-                        <span>Click the eye icon to show password</span>
+                        {mode === 'signup' && 'Create Account'}
+                        {mode === 'signin' && 'Sign In'}
+                        {mode === 'forgot-password' && 'Send Reset Instructions'}
                       </>
                     )}
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !isValidForm()}
-                className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    {mode === 'signup' && 'Create Account'}
-                    {mode === 'signin' && 'Sign In'}
-                    {mode === 'forgot-password' && 'Send Reset Instructions'}
-                  </>
-                )}
-              </button>
+                  </button>
+                </RippleEffect>
+              </SmoothTransition>
             </form>
           )}
 
