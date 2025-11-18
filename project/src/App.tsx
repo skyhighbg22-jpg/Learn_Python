@@ -47,9 +47,23 @@ const MainApp = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-400 text-lg">Loading...</div>
-      </div>
+      <SpringWrapper className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <BounceIn delay={200}>
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <div className="text-slate-400 text-lg animate-pulse">Loading PyLearn...</div>
+            <div className="mt-4 flex gap-2 justify-center">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                />
+              ))}
+            </div>
+          </div>
+        </BounceIn>
+      </SpringWrapper>
     );
   }
 
