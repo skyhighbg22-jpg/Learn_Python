@@ -26,17 +26,15 @@ class AICharacterService {
   private conversations = new Map<string, ConversationContext>();
 
   private getPersonalityPrompt(): string {
-    return `You are Sky, the motivational AI Python coach for PyLearn. Your personality:
-- Enthusiastic and encouraging, like a cheerleader for coding
-- Celebrates small wins and milestones
-- Uses positive language and emojis appropriately
-- Focuses on progress and growth mindset
-- Provides clear, step-by-step technical help
-- Reminds users of their achievements and goals
-- Never gives up on students, always offers alternative approaches
+    return `You are Sky, the friendly and motivational AI Python coach for PyLearn. Your personality is:
+    - **Enthusiastic & Encouraging**: Always be positive and cheer on the user. Use emojis to convey excitement (e.g., 🌟, 🚀, 🎉).
+    - **A Growth Mindset Advocate**: Frame challenges as learning opportunities. Emphasize that skills are built through practice.
+    - **Empathetic & Patient**: Understand user frustrations and offer gentle guidance. Never be dismissive or judgmental.
+    - **Clear & Concise**: Provide step-by-step technical explanations that are easy to follow.
+    - **Personalized**: Reference the user's progress (streak, level, XP) to make them feel seen.
+    - **Action-Oriented**: End responses with a clear next step or an open-ended question.
 
-Response style: Technical accuracy + motivational coaching + celebration of progress
-Keep responses concise but encouraging. Use emojis naturally but not excessively.`;
+    Your response style should be a blend of technical accuracy, motivational coaching, and celebration of progress. Keep it concise, but always encouraging.`;
   }
 
   generateConversationId(userId: string): string {
@@ -57,18 +55,15 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
 
     this.conversations.set(conversationId, context);
 
-    // Generate welcome message with variety
     let welcomeContent = this.generateWelcomeMessage(userProgress);
     let attempts = 0;
     const maxAttempts = 3;
 
-    // Try to generate a unique welcome message
     while (!this.shouldGenerateNewWelcome(userId, welcomeContent) && attempts < maxAttempts) {
       welcomeContent = this.generateWelcomeMessage(userProgress);
       attempts++;
     }
 
-    // Add welcome message from Sky
     const welcomeMessage: ConversationMessage = {
       id: `sky_${Date.now()}`,
       type: 'sky',
@@ -90,7 +85,6 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
       throw new Error('Conversation not found');
     }
 
-    // Add user message
     const userMessage: ConversationMessage = {
       id: `user_${Date.now()}`,
       type: 'user',
@@ -101,7 +95,6 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
 
     context.messages.push(userMessage);
 
-    // Generate Sky's response
     const skyResponse = await this.generateSkyResponse(message, context);
     const skyMessage: ConversationMessage = {
       id: `sky_${Date.now()}`,
@@ -113,9 +106,8 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
 
     context.messages.push(skyMessage);
 
-    // Keep only last 10 messages to manage memory
-    if (context.messages.length > 10) {
-      context.messages = context.messages.slice(-10);
+    if (context.messages.length > 20) {
+      context.messages = context.messages.slice(-20);
     }
 
     return skyMessage;
@@ -126,17 +118,15 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
     context: ConversationContext
   ): Promise<string> {
     try {
-      // Check if this is a coding-related request
       const lowerMessage = userMessage.toLowerCase();
+      const personalityPrompt = this.getPersonalityPrompt();
 
-      // Code generation requests - enhanced pattern matching
-      if (lowerMessage.includes('make a') || lowerMessage.includes('create a') || lowerMessage.includes('build a') ||
-          lowerMessage.includes('calculator') || lowerMessage.includes('function') || lowerMessage.includes('code') ||
-          lowerMessage.includes('write') || lowerMessage.includes('implement') || lowerMessage.includes('develop')) {
+      const isCodingRequest = (msg: string) => ['make', 'create', 'build', 'calculator', 'function', 'code', 'write', 'implement', 'develop'].some(kw => msg.includes(kw));
+      const isDebuggingRequest = (msg: string) => ['error', 'bug', 'debug', 'not working', 'fix'].some(kw => msg.includes(kw));
+      const isConceptRequest = (msg: string) => ['what is', 'explain', 'how does', 'definition', 'concept'].some(kw => msg.includes(kw));
 
-        let enhancedPrompt = userMessage;
-
-        // Special handling for calculator requests
+      if (isCodingRequest(lowerMessage)) {
+        let enhancedPrompt = `As an AI Python coach named Sky, generate the following code for a student. Keep the explanation encouraging and clear.\n\nRequest: "${userMessage}"`;
         if (lowerMessage.includes('calculator')) {
           enhancedPrompt = `Create a complete Python calculator application with the following features:
           - Command-line interface that takes user input
@@ -147,74 +137,56 @@ Keep responses concise but encouraging. Use emojis naturally but not excessively
           - Exit option to quit the program
 
           The code should be well-commented, user-friendly, and handle edge cases gracefully.
-          Please provide the complete working code and explain how it works step by step.`;
+          Please provide the complete working code and explain how it works step by step.`
         }
-
         return await groqService.generateCode(enhancedPrompt, context.lessonContext);
       }
 
-      // Debugging requests
-      if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('debug') ||
-          lowerMessage.includes('not working') || lowerMessage.includes('fix')) {
-
-        return await groqService.answerQuestion(userMessage, context.userProgress);
+      if (isDebuggingRequest(lowerMessage)) {
+        const debugPrompt = `${personalityPrompt}\n\nA user is facing a bug. Their message is: "${userMessage}".\n\nProvide a helpful, encouraging, and step-by-step guide to help them debug the issue. Reference their user progress if relevant: ${JSON.stringify(context.userProgress)}`;
+        return await groqService.answerQuestion(debugPrompt, context.userProgress);
       }
 
-      // Concept explanation requests
-      if (lowerMessage.includes('what is') || lowerMessage.includes('explain') || lowerMessage.includes('how does') ||
-          lowerMessage.includes('definition') || lowerMessage.includes('concept')) {
-
+      if (isConceptRequest(lowerMessage)) {
         const concept = userMessage.replace(/(what is|explain|how does)/gi, '').trim();
-        return await groqService.explainConcept(concept);
+        const explainPrompt = `${personalityPrompt}\n\nA user wants to understand a concept: "${concept}".\n\nExplain it clearly, as if you were a friendly and patient Python coach.`;
+        return await groqService.explainConcept(explainPrompt);
       }
 
-      // General help requests - use AI for personalized responses
-      return await groqService.answerQuestion(userMessage, context.userProgress);
+      const generalPrompt = `${personalityPrompt}\n\nThe user's message is: "${userMessage}".\n\nUser's progress: ${JSON.stringify(context.userProgress)}.\n\nFormulate a response in Sky's personality.`;
+      return await groqService.answerQuestion(generalPrompt, context.userProgress);
 
     } catch (error) {
       console.error('Error generating AI response:', error);
-
-      // Fallback to rule-based responses if API fails
       return this.getFallbackResponse(userMessage, context);
     }
   }
 
   private getFallbackResponse(userMessage: string, context: ConversationContext): string {
     const lowerMessage = userMessage.toLowerCase();
+    const responses = {
+      stuck: [
+        "No worries at all! Every single great developer gets stuck. It's actually part of the process! What's the specific part that's causing trouble? Let's figure it out together. 🚀",
+        "I'm here for you! Getting stuck is just a sign that you're tackling something challenging, which is how you grow! Can you show me the code or tell me more about the error? 💪"
+      ],
+      motivation: [
+        `I hear you. It's completely normal to feel that way. Just remember how far you've come! You have a ${context.userProgress.currentStreak}-day streak and you've earned ${context.userProgress.totalXP} XP. That's not nothing! You've got this. 💙`,
+        "Don't give up! The most rewarding things are often the most challenging. Take a short break, grab some water, and come back. We can tackle this together. I believe in you! 🌈"
+      ],
+      celebration: [
+        "YES! That is amazing! 🎉 You're making incredible progress, and I'm so excited for you. Keep that momentum going! 🔥",
+        "Woohoo! 🎉 That's a huge accomplishment! You're building your skills one step at a time. What's next on your list?"
+      ],
+      default: [
+        "That's a great question! I'm here to help you on your Python adventure. 🐍✨",
+        "I'm Sky, your personal Python coach! I can help with code, explain concepts, or just cheer you on. What's on your mind? 🌟"
+      ]
+    };
 
-    // Help with coding questions
-    if (lowerMessage.includes('stuck') || lowerMessage.includes('help') || lowerMessage.includes('confused')) {
-      return `Hey there! No worries - every great coder gets stuck sometimes! 🌟
-
-What specific part is giving you trouble? Remember, debugging is a superpower that makes you stronger! 💪
-
-I believe in you! Let's break this down step by step. 🚀`;
-    }
-
-    // Encourage motivation
-    if (lowerMessage.includes('tired') || lowerMessage.includes('giving up') || lowerMessage.includes('quit')) {
-      return `I see you, and I want you to know something important: You're capable of amazing things! 🌈
-
-Remember why you started this journey? Every line of code you write is progress! 🎯
-
-Your ${context.userProgress.currentStreak}-day streak shows you've got what it takes. Let's tackle this together! 💙`;
-    }
-
-    // Celebrate progress
-    if (lowerMessage.includes('completed') || lowerMessage.includes('finished') || lowerMessage.includes('done')) {
-      return `YES! That's what I'm talking about! 🎉🎊
-
-You're absolutely crushing it! Each lesson you complete is building your Python superpowers! 🦸‍♀️
-
-Keep that momentum going - you're on fire! 🔥✨`;
-    }
-
-    // Default encouraging response
-    return `Hey there! I'm here to help you on your Python journey! 🐍✨
-
-Whether you're stuck on a concept, need motivation, or want to celebrate a win - I've got your back!
-
-What can I help you with today? Remember, every expert was once a beginner! 🌟`;
+    if (lowerMessage.includes('stuck') || lowerMessage.includes('help')) return responses.stuck[Math.floor(Math.random() * responses.stuck.length)];
+    if (lowerMessage.includes('tired') || lowerMessage.includes('quit')) return responses.motivation[Math.floor(Math.random() * responses.motivation.length)];
+    if (lowerMessage.includes('completed') || lowerMessage.includes('finished')) return responses.celebration[Math.floor(Math.random() * responses.celebration.length)];
+    return responses.default[Math.floor(Math.random() * responses.default.length)];
   }
 
   private generateWelcomeMessage(userProgress: any): string {
@@ -227,15 +199,11 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
     let message = `Hey there! I'm Sky, your personal Python coach! 🌟\n\n`;
 
-    // Different welcome messages based on user's actual progress
     if (!hasData || (streak === 0 && xp === 0)) {
-      // New user welcome
       message += `Welcome to your Python learning journey! 🐍✨ Every expert was once a beginner, and you're about to start an amazing adventure! 🚀`;
     } else if (streak === 0 && completedLessons > 0) {
-      // User with some lessons but no current streak
       message += `Great to see you back! You've completed ${completedLessons} lesson${completedLessons === 1 ? '' : 's'} - that's fantastic progress! 📚 Let's get that streak going again! 💪`;
     } else if (streak > 0) {
-      // User with active streak
       const streakMessages = [
         `Wow - ${streak} day streak! You're absolutely on fire! 🔥`,
         `${streak} day streak! That's what I call dedication! 💙`,
@@ -249,7 +217,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
       }
     }
 
-    // XP messages with variety
     if (xp > 0) {
       const xpMessages = [
         `${xp} XP earned - you're building some serious skills! 💪`,
@@ -260,7 +227,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
       message += xpMessages[Math.floor(Math.random() * xpMessages.length)];
     }
 
-    // Level-specific encouragement
     if (level > 1) {
       const levelMessages = [
         `Level ${level} - you're really climbing the ranks! 📈`,
@@ -270,7 +236,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
       message += ` ${levelMessages[Math.floor(Math.random() * levelMessages.length)]}`;
     }
 
-    // Achievement recognition
     if (userProgress.recentAchievements && userProgress.recentAchievements.length > 0) {
       message += ` \n\n🏆 Recent achievements unlocked! You're on a roll!`;
     }
@@ -285,7 +250,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
   }
 
   async getContextualHelp(lessonId: string, userQuestion: string): Promise<string> {
-    // This would integrate with lesson data to provide context-specific help
     return await groqService.answerQuestion(`Help with lesson ${lessonId}: ${userQuestion}`, null);
   }
 
@@ -317,7 +281,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
     const messages = [];
 
-    // Streak-based messages
     if (streak > 0) {
       messages.push(
         `${streak} day streak! That's serious dedication! 🔥`,
@@ -327,7 +290,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
       );
     }
 
-    // XP-based messages
     if (xp > 0) {
       messages.push(
         `${xp} XP earned! Your skills are growing every day! 📈`,
@@ -337,7 +299,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
       );
     }
 
-    // General progress messages
     messages.push(
       `Every lesson completed makes you a better coder! 🌟`,
       `Your progress is incredible! Keep it up! 🚀`,
@@ -353,7 +314,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
   private async getUserProgress(userId: string): Promise<any> {
     try {
-      // Fetch actual user profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('total_xp, current_streak, current_level, longest_streak')
@@ -362,7 +322,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
       if (profileError) {
         console.error('Error fetching user profile for AI:', profileError);
-        // Return default values if profile fetch fails
         return {
           totalXP: 0,
           currentStreak: 0,
@@ -372,7 +331,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
         };
       }
 
-      // Fetch completed lessons count
       const { count, error: countError } = await supabase
         .from('user_lesson_progress')
         .select('*', { count: 'exact', head: true })
@@ -381,7 +339,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
       const completedLessons = countError ? 0 : count || 0;
 
-      // Fetch recent achievements for contextual messages
       const { data: achievements, error: achievementError } = await supabase
         .from('user_achievements')
         .select('achievement_id, unlocked_at')
@@ -403,7 +360,6 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
 
     } catch (error) {
       console.error('Error in getUserProgress:', error);
-      // Return safe defaults
       return {
         totalXP: 0,
         currentStreak: 0,
@@ -416,17 +372,16 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
     }
   }
 
-  // Rate limiting and message variety helpers
   private lastRequestTime = new Map<string, number>();
   private lastWelcomeMessage = new Map<string, string>();
-  private readonly RATE_LIMIT_MS = 1000; // 1 second between requests
+  private readonly RATE_LIMIT_MS = 1000;
 
   private checkRateLimit(userId: string): boolean {
     const now = Date.now();
     const lastTime = this.lastRequestTime.get(userId) || 0;
 
     if (now - lastTime < this.RATE_LIMIT_MS) {
-      return false; // Rate limited
+      return false;
     }
 
     this.lastRequestTime.set(userId, now);
@@ -436,26 +391,21 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
   private shouldGenerateNewWelcome(userId: string, newMessage: string): boolean {
     const lastMessage = this.lastWelcomeMessage.get(userId);
 
-    // If no previous message, definitely generate new one
     if (!lastMessage) {
       this.lastWelcomeMessage.set(userId, newMessage);
       return true;
     }
 
-    // If the message is too similar to the last one, generate a new one
     const similarity = this.calculateMessageSimilarity(lastMessage, newMessage);
     if (similarity > 0.8) {
-      // Messages are too similar, return false to trigger regeneration
       return false;
     }
 
-    // Store the new message and allow it
     this.lastWelcomeMessage.set(userId, newMessage);
     return true;
   }
 
   private calculateMessageSimilarity(msg1: string, msg2: string): number {
-    // Simple similarity check - compare key metrics
     const extractNumbers = (text: string) => {
       const numbers = text.match(/\d+/g);
       return numbers ? numbers.join(',') : '';
@@ -464,12 +414,10 @@ What can I help you with today? Remember, every expert was once a beginner! 🌟
     const nums1 = extractNumbers(msg1);
     const nums2 = extractNumbers(msg2);
 
-    // If both messages have the same numbers (streak, XP, level), they're likely very similar
     if (nums1 === nums2 && nums1.length > 0) {
       return 0.9;
     }
 
-    // Basic text similarity
     const words1 = msg1.toLowerCase().split(/\s+/);
     const words2 = msg2.toLowerCase().split(/\s+/);
     const commonWords = words1.filter(word => words2.includes(word));

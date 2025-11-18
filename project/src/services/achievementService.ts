@@ -673,6 +673,36 @@ class AchievementService {
     }
   }
 
+  // Get special rewards for a user
+  async getSpecialRewards(userId: string): Promise<Reward[]> {
+    try {
+      const { data: userAchievements } = await supabase
+        .from('user_achievements')
+        .select('achievement_id')
+        .eq('user_id', userId);
+
+      if (!userAchievements) return [];
+
+      const achievementIds = userAchievements.map(ua => ua.achievement_id);
+
+      const { data: achievements } = await supabase
+        .from('achievements')
+        .select('special_rewards')
+        .in('id', achievementIds);
+
+      if (!achievements) return [];
+
+      const allRewards = achievements
+        .flatMap(a => a.special_rewards as Reward[])
+        .filter(reward => reward !== null);
+
+      return allRewards;
+    } catch (error) {
+      console.error('Error fetching special rewards:', error);
+      return [];
+    }
+  }
+
   // Get leaderboard points for achievement rarity
   getLeaderboardPoints(rarity: string): number {
     switch (rarity) {
@@ -698,32 +728,6 @@ class AchievementService {
     } catch (error) {
       console.error('Error marking celebration as viewed:', error);
       return false;
-    }
-  }
-
-  // Get unviewed achievement celebrations
-  async getUnviewedCelebrations(userId: string): Promise<Achievement[]> {
-    try {
-      const { data } = await supabase
-        .from('user_achievements')
-        .select(`
-          achievement_id,
-          achievements!inner(
-            id,
-            title,
-            description,
-            icon,
-            rarity,
-            special_rewards
-          )
-        `)
-        .eq('user_id', userId)
-        .eq('celebration_viewed', false);
-
-      return data?.map(ua => ua.achievements) || [];
-    } catch (error) {
-      console.error('Error fetching unviewed celebrations:', error);
-      return [];
     }
   }
 
@@ -762,6 +766,32 @@ class AchievementService {
     } catch (error) {
       console.error('Error sharing achievement:', error);
       return '';
+    }
+  }
+
+  // Get unviewed achievement celebrations
+  async getUnviewedCelebrations(userId: string): Promise<Achievement[]> {
+    try {
+      const { data } = await supabase
+        .from('user_achievements')
+        .select(`
+          achievement_id,
+          achievements!inner(
+            id,
+            title,
+            description,
+            icon,
+            rarity,
+            special_rewards
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('celebration_viewed', false);
+
+      return data?.map(ua => ua.achievements) || [];
+    } catch (error) {
+      console.error('Error fetching unviewed celebrations:', error);
+      return [];
     }
   }
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdProvider } from './contexts/AdContext';
@@ -15,6 +17,15 @@ import AdManager from './components/ads/AdManager';
 import { ResponsiveAd, AutoAd } from './components/ads/AutoAd';
 import { PaymentModal } from './components/ui/PaymentModal';
 import { AdFreeBanner } from './components/ui/AdFreeBanner';
+import {
+  SpringWrapper,
+  BounceIn,
+  SmoothTransition,
+  PageTransition,
+  MorphTransition,
+  RippleEffect,
+  LiquidFill
+} from './components/ui/Animations';
 
 const MainApp = () => {
   const { user, loading } = useAuth();
@@ -38,9 +49,23 @@ const MainApp = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-400 text-lg">Loading...</div>
-      </div>
+      <SpringWrapper className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <BounceIn delay={200}>
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <div className="text-slate-400 text-lg animate-pulse">Loading PyLearn...</div>
+            <div className="mt-4 flex gap-2 justify-center">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                />
+              ))}
+            </div>
+          </div>
+        </BounceIn>
+      </SpringWrapper>
     );
   }
 
@@ -49,37 +74,57 @@ const MainApp = () => {
   }
 
   const renderView = () => {
-    switch (currentView) {
-      case 'learn':
-        return <LearnView />;
-      case 'profile':
-        return <ProfileView />;
-      case 'leaderboard':
-        return <LeaderboardView />;
-      case 'challenges':
-        return <ChallengesView />;
-      case 'practice':
-        return <PracticeView />;
-      case 'friends':
-        return <FriendsView />;
-      default:
-        return <LearnView />;
-    }
+    const viewContent = () => {
+      switch (currentView) {
+        case 'learn':
+          return <LearnView />;
+        case 'profile':
+          return <ProfileView />;
+        case 'leaderboard':
+          return <LeaderboardView />;
+        case 'challenges':
+          return <ChallengesView />;
+        case 'practice':
+          return <PracticeView />;
+        case 'friends':
+          return <FriendsView />;
+        default:
+          return <LearnView />;
+      }
+    };
+
+    return (
+      <PageTransition>
+        <div className="page-transition-content">
+          <BounceIn delay={100}>
+            {viewContent()}
+          </BounceIn>
+        </div>
+      </PageTransition>
+    );
   };
 
   return (
-    <div className="flex h-screen bg-slate-900">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+    <SpringWrapper className="flex h-screen bg-slate-900">
+      <SmoothTransition duration={400}>
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+      </SmoothTransition>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <BounceIn delay={200}>
+          <Header />
+        </BounceIn>
 
         {/* Ad-Free Banner */}
-        <div className="px-6 py-4">
-          <AdFreeBanner
-            onUpgrade={() => setShowPaymentModal(true)}
-            className="max-w-4xl mx-auto"
-          />
-        </div>
+        <BounceIn delay={300}>
+          <div className="px-6 py-4">
+            <MorphTransition>
+              <AdFreeBanner
+                onUpgrade={() => setShowPaymentModal(true)}
+                className="max-w-4xl mx-auto"
+              />
+            </MorphTransition>
+          </div>
+        </BounceIn>
 
         <main className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="max-w-4xl mx-auto">
@@ -137,18 +182,20 @@ const MainApp = () => {
         onToggle={() => setIsAIChatOpen(!isAIChatOpen)}
         lessonContext={lessonContext}
       />
-    </div>
+    </SpringWrapper>
   );
 };
 
-function App() {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <AdProvider>
-        <MainApp />
-      </AdProvider>
-    </AuthProvider>
+    <html lang="en">
+      <body>
+        <AuthProvider>
+          <AdProvider>
+            <MainApp />
+          </AdProvider>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }
-
-export default App;
