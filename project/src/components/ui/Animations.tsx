@@ -429,6 +429,7 @@ export const MagneticHover = ({ children, strength = 0.3, className = '' }: {
       {children}
     </div>
   );
+};
 
 // CSS-in-JS animation styles (to be added to global styles)
 export const animationStyles = `
