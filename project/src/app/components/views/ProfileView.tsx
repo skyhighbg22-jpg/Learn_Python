@@ -159,18 +159,16 @@ export const ProfileView = () => {
         // Cache the current profile data
         cacheProfileData(profile);
 
-        const [progress, stats, skillData, pathData, analytics, userRanking, leagueSize, leaderboardData, rewards, celebrations] = await Promise.all([
+        const [progress, stats, skillData, pathData, analytics, userRanking, leagueUsers, specialRewards, unviewedCelebrations] = await Promise.all([
           AchievementService.getAchievementProgress(profile.id),
           AchievementService.getAchievementStats(profile.id),
           profileAnalyticsService.calculateSkillProgress(profile.id),
           profileAnalyticsService.calculateLearningPaths(profile.id),
           profileAnalyticsService.calculateProfileStats(profile.id),
-          leagueService.calculateUserRank(profile.id, profile.total_xp),
-          leagueService.getLeagueLeaderboard(profile.id, profile.total_xp),
-          leagueService.getLeagueSize(profile.id, profile.total_xp),
-          // New enhanced features
-          Promise.resolve([]), // TODO: AchievementService.getSpecialRewards(profile.id)
-          Promise.resolve([])  // TODO: AchievementService.getUnviewedCelebrations(profile.id)
+          leagueService.getUserRanking(profile.id),
+          leagueService.getLeagueLeaderboard(profile.league || 'bronze'),
+          AchievementService.getSpecialRewards(profile.id),
+          AchievementService.getUnviewedCelebrations(profile.id),
         ]);
 
         setAchievementProgress(progress || []);
