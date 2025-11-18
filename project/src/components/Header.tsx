@@ -5,7 +5,7 @@ import AdManager from './ads/AdManager';
 import { useEffect, useState } from 'react';
 
 export const Header = () => {
-  const { profile, updateProfileAvatar } = useAuth();
+  const { profile, user, loading, updateProfileAvatar } = useAuth();
   const [animatedStats, setAnimatedStats] = useState({
     streak: 0,
     hearts: 5,
