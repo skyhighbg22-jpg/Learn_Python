@@ -1,4 +1,5 @@
 import React from 'react';
+import { SmoothTransition, BounceIn, LiquidFill } from './Animations';
 
 interface SkeletonProps {
   className?: string;
@@ -6,6 +7,7 @@ interface SkeletonProps {
   width?: string;
   variant?: 'text' | 'circular' | 'rectangular';
   animated?: boolean;
+  shimmer?: boolean;
 }
 
 export const Skeleton = ({
@@ -13,9 +15,10 @@ export const Skeleton = ({
   height = 'h-4',
   width = 'w-full',
   variant = 'rectangular',
-  animated = true
+  animated = true,
+  shimmer = true
 }: SkeletonProps) => {
-  const baseClasses = 'bg-slate-700 rounded';
+  const baseClasses = 'bg-slate-700 rounded relative overflow-hidden';
   const animationClass = animated ? 'animate-pulse' : '';
   const variantClasses = {
     text: 'h-4 w-3/4',
@@ -26,7 +29,11 @@ export const Skeleton = ({
   return (
     <div
       className={`${baseClasses} ${variantClasses[variant]} ${animationClass} ${className}`}
-    />
+    >
+      {shimmer && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+      )}
+    </div>
   );
 };
 
