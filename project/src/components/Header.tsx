@@ -246,9 +246,11 @@ export const Header = () => {
       </BounceIn>
 
       {/* Header Ad Banner */}
-      <div className="mt-4">
-        <AdManager adType="banner" className="w-full" />
-      </div>
+      <BounceIn delay={700}>
+        <div className="mt-4">
+          <AdManager adType="banner" className="w-full" />
+        </div>
+      </BounceIn>
     </div>
   );
 };
