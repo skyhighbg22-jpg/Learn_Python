@@ -43,12 +43,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return existingProfile;
       }
 
-      // Create profile from user metadata or auth data
+      // Get user data from auth
       const { data: { user } } = await supabase.auth.getUser();
+
+      // Prioritize passed metadata, then user metadata, then fallbacks
       const fullName = userMetadata?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name;
-      const username = userMetadata?.username || user?.user_metadata?.username ||
-                     fullName?.toLowerCase().replace(/\s+/g, '_') ||
-                     `user_${userId.slice(0, 8)}`;
+      const username = userMetadata?.username ||
+                      user?.user_metadata?.username ||
+                      fullName?.toLowerCase().replace(/\s+/g, '_') ||
+                      `user_${userId.slice(0, 8)}`;
 
       const newProfile = {
         id: userId,
