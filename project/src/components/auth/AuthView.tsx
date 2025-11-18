@@ -399,45 +399,51 @@ export const AuthView = () => {
           )}
 
           {/* Footer Links */}
-          <div className="mt-6 text-center space-y-2">
+          <BounceIn delay={700} className="mt-6 text-center space-y-2">
             {mode === 'signin' && (
               <>
-                <button
-                  onClick={() => switchMode('signup')}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Don't have an account? Sign up
-                </button>
-                <div>
+                <SmoothTransition delay={100}>
+                  <button
+                    onClick={() => switchMode('signup')}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 hover:scale-105 micro-bounce"
+                  >
+                    Don't have an account? Sign up
+                  </button>
+                </SmoothTransition>
+                <SmoothTransition delay={200}>
                   <button
                     onClick={() => switchMode('forgot-password')}
-                    className="text-sm text-gray-600 hover:text-gray-700"
+                    className="text-sm text-gray-600 hover:text-gray-700 transition-colors duration-200 hover:scale-105 micro-bounce"
                   >
                     Forgot your password?
                   </button>
-                </div>
+                </SmoothTransition>
               </>
             )}
 
             {mode === 'signup' && (
-              <button
-                onClick={() => switchMode('signin')}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Already have an account? Sign in
-              </button>
+              <SmoothTransition delay={100}>
+                <button
+                  onClick={() => switchMode('signin')}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 hover:scale-105 micro-bounce"
+                >
+                  Already have an account? Sign in
+                </button>
+              </SmoothTransition>
             )}
 
             {mode === 'forgot-password' && (
-              <button
-                onClick={() => switchMode('signin')}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to sign in
-              </button>
+              <SmoothTransition delay={100}>
+                <button
+                  onClick={() => switchMode('signin')}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1 transition-colors duration-200 hover:scale-105 micro-bounce"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to sign in
+                </button>
+              </SmoothTransition>
             )}
-          </div>
+          </BounceIn>
 
           {/* Terms and Privacy */}
           <div className="mt-6 pt-6 border-t border-gray-200">
