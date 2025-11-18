@@ -13,6 +13,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import {
+  SpringWrapper,
+  BounceIn,
+  SmoothTransition,
+  ElasticScale,
+  MorphTransition,
+  RippleEffect
+} from '../ui/Animations';
 
 type AuthMode = 'signin' | 'signup' | 'forgot-password';
 type EmailStatus = 'idle' | 'sending' | 'sent' | 'error';
