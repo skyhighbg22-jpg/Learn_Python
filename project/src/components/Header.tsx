@@ -129,7 +129,14 @@ export const Header = () => {
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-white font-semibold text-lg">
-              {profile?.display_name || profile?.username || 'New Python Coder'}
+              {loading ? (
+                'Loading...'
+              ) : (
+                profile?.display_name ||
+                profile?.username ||
+                user?.email?.split('@')[0] || // Use email prefix as fallback
+                'Python Coder' // Remove "New" to make it less temporary
+              )}
             </p>
             <div className="flex items-center gap-2 justify-end">
               {getLeagueIcon(profile?.league || 'Bronze')}
