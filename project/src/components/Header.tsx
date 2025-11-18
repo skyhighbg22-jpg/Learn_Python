@@ -108,24 +108,32 @@ export const Header = () => {
           </MagneticHover>
 
           {/* Enhanced Hearts Card */}
-          <div className="stat-card group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
-            <div className="relative flex items-center gap-3">
-              <div className="relative">
-                <Heart className="text-red-500 transition-transform duration-250 hover:scale-110" size={24} />
-                <div className="absolute inset-0 bg-red-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+          <MagneticHover strength={0.12}>
+            <BounceIn delay={200}>
+              <div className="stat-card group relative overflow-hidden hover-lift hover-glow">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-3">
+                  <div className="relative">
+                    <ElasticScale trigger={animatedStats.hearts > 0}>
+                      <Heart className="text-red-500 transition-transform duration-300 hover:scale-110 animate-pulse" size={24} />
+                    </ElasticScale>
+                    <div className="absolute inset-0 bg-red-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+                  </div>
+                  <div className="flex flex-col">
+                    <SmoothTransition duration={500}>
+                      <span
+                        className="text-white font-bold text-lg tabular-nums transition-all duration-300"
+                        key={`hearts-${animatedStats.hearts}`}
+                      >
+                        {animatedStats.hearts}
+                      </span>
+                    </SmoothTransition>
+                    <span className="text-slate-400 text-xs font-medium">hearts</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span
-                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
-                  key={`hearts-${animatedStats.hearts}`}
-                >
-                  {animatedStats.hearts}
-                </span>
-                <span className="text-slate-400 text-xs font-medium">hearts</span>
-              </div>
-            </div>
-          </div>
+            </BounceIn>
+          </MagneticHover>
 
           {/* Enhanced XP Card */}
           <div className="stat-card group relative overflow-hidden">
