@@ -795,44 +795,6 @@ class AchievementService {
     }
   }
 
-  // Share achievement externally
-  async shareAchievement(userId: string, achievementId: string, platform: 'twitter' | 'linkedin' | 'facebook'): Promise<string> {
-    try {
-      const { data: achievement } = await supabase
-        .from('achievements')
-        .select('title, rarity, description')
-        .eq('id', achievementId)
-        .single();
-
-      if (!achievement) return '';
-
-      // Mark as shared
-      await supabase
-        .from('user_achievements')
-        .update({ shared_externally: true })
-        .eq('user_id', userId)
-        .eq('achievement_id', achievementId);
-
-      const rarityEmojis = {
-        common: '🔹',
-        rare: '🔷',
-        epic: '🟣',
-        legendary: '⭐'
-      };
-
-      const messages = {
-        twitter: `Just unlocked the ${rarityEmojis[achievement.rarity]} ${achievement.title} achievement in PyLearn! ${achievement.description} 🐍 #Python #LearnToCode`,
-        linkedin: `I'm excited to share that I've earned the ${achievement.title} achievement on my Python learning journey with PyLearn! ${achievement.description} #PythonProgramming #ProfessionalDevelopment`,
-        facebook: `🎉 Achievement Unlocked! I just earned the ${achievement.title} achievement in PyLearn while learning Python. ${achievement.description} #CodingJourney`
-      };
-
-      return messages[platform];
-    } catch (error) {
-      console.error('Error sharing achievement:', error);
-      return '';
-    }
-  }
-
   // Get recommended achievements to pursue
   async getRecommendedAchievements(userId: string, limit: number = 3): Promise<AchievementProgress[]> {
     try {
