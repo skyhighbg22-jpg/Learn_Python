@@ -72,22 +72,34 @@ const MainApp = () => {
   }
 
   const renderView = () => {
-    switch (currentView) {
-      case 'learn':
-        return <LearnView />;
-      case 'profile':
-        return <ProfileView />;
-      case 'leaderboard':
-        return <LeaderboardView />;
-      case 'challenges':
-        return <ChallengesView />;
-      case 'practice':
-        return <PracticeView />;
-      case 'friends':
-        return <FriendsView />;
-      default:
-        return <LearnView />;
-    }
+    const viewContent = () => {
+      switch (currentView) {
+        case 'learn':
+          return <LearnView />;
+        case 'profile':
+          return <ProfileView />;
+        case 'leaderboard':
+          return <LeaderboardView />;
+        case 'challenges':
+          return <ChallengesView />;
+        case 'practice':
+          return <PracticeView />;
+        case 'friends':
+          return <FriendsView />;
+        default:
+          return <LearnView />;
+      }
+    };
+
+    return (
+      <PageTransition>
+        <div className="page-transition-content">
+          <BounceIn delay={100}>
+            {viewContent()}
+          </BounceIn>
+        </div>
+      </PageTransition>
+    );
   };
 
   return (
