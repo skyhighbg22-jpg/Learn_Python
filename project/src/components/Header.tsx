@@ -136,24 +136,32 @@ export const Header = () => {
           </MagneticHover>
 
           {/* Enhanced XP Card */}
-          <div className="stat-card group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-warning-500 opacity-0 group-hover:opacity-10 transition-opacity duration-250"></div>
-            <div className="relative flex items-center gap-3">
-              <div className="relative">
-                <Zap className="text-warning-400 animate-pulse" size={24} />
-                <div className="absolute -inset-2 bg-yellow-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+          <MagneticHover strength={0.1}>
+            <BounceIn delay={300}>
+              <div className="stat-card group relative overflow-hidden hover-lift hover-glow">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-warning-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-3">
+                  <div className="relative">
+                    <ElasticScale trigger={animatedStats.xp > 0}>
+                      <Zap className="text-warning-400 animate-pulse" size={24} />
+                    </ElasticScale>
+                    <div className="absolute -inset-2 bg-yellow-500 rounded-full blur-md opacity-20 animate-pulse"></div>
+                  </div>
+                  <div className="flex flex-col">
+                    <SmoothTransition duration={500}>
+                      <span
+                        className="text-white font-bold text-lg tabular-nums transition-all duration-300"
+                        key={`xp-${animatedStats.xp}`}
+                      >
+                        {animatedStats.xp.toLocaleString()}
+                      </span>
+                    </SmoothTransition>
+                    <span className="text-slate-400 text-xs font-medium">total XP</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span
-                  className="text-white font-bold text-lg animate-number-pop tabular-nums"
-                  key={`xp-${animatedStats.xp}`}
-                >
-                  {animatedStats.xp.toLocaleString()}
-                </span>
-                <span className="text-slate-400 text-xs font-medium">total XP</span>
-              </div>
-            </div>
-          </div>
+            </BounceIn>
+          </MagneticHover>
         </div>
 
         {/* Enhanced Profile Section */}
