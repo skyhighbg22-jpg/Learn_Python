@@ -3,6 +3,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { ProfilePictureUpload } from './ui/ProfilePictureUpload';
 import AdManager from './ads/AdManager';
 import { useEffect, useState } from 'react';
+import {
+  SpringWrapper,
+  BounceIn,
+  SmoothTransition,
+  ElasticScale,
+  MorphTransition,
+  RippleEffect,
+  MagneticHover,
+  LiquidFill
+} from './ui/Animations';
 
 export const Header = () => {
   const { profile, user, loading, updateProfileAvatar } = useAuth();
