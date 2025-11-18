@@ -165,25 +165,32 @@ export const Header = () => {
         </div>
 
         {/* Enhanced Profile Section */}
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-white font-semibold text-lg">
-              {loading ? (
-                'Loading...'
-              ) : (
-                profile?.display_name ||
-                profile?.username ||
-                user?.email?.split('@')[0] || // Use email prefix as fallback
-                'Python Coder' // Remove "New" to make it less temporary
-              )}
-            </p>
-            <div className="flex items-center gap-2 justify-end">
-              {getLeagueIcon(profile?.league || 'Bronze')}
-              <span className={`text-sm font-medium capitalize ${getLeagueColor(profile?.league || 'Bronze')}`}>
-                {profile?.league || 'Bronze'} League
-              </span>
+        <BounceIn delay={400}>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <SmoothTransition duration={600}>
+                <p className="text-white font-semibold text-lg transition-all duration-300">
+                  {loading ? (
+                    'Loading...'
+                  ) : (
+                    profile?.display_name ||
+                    profile?.username ||
+                    user?.email?.split('@')[0] || // Use email prefix as fallback
+                    'Python Coder' // Remove "New" to make it less temporary
+                  )}
+                </p>
+              </SmoothTransition>
+              <SmoothTransition delay={200} duration={400}>
+                <div className="flex items-center gap-2 justify-end">
+                  <MorphTransition>
+                    {getLeagueIcon(profile?.league || 'Bronze')}
+                  </MorphTransition>
+                  <span className={`text-sm font-medium capitalize transition-colors duration-300 ${getLeagueColor(profile?.league || 'Bronze')}`}>
+                    {profile?.league || 'Bronze'} League
+                  </span>
+                </div>
+              </SmoothTransition>
             </div>
-          </div>
 
           {/* Enhanced Avatar */}
           <div className="relative group">
